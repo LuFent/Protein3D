@@ -1,20 +1,19 @@
-
-class Molecule():
+class Molecule:
     def __init__(self, atoms, identifier):
         self._atoms = atoms
         self._identifier = identifier
 
-    def Get_Atom_Coords(self):
+    def get_atom_coords(self):
         return [atom.Get_Coords() for atom in self._atoms]
 
-    def Get_Atoms(self):
+    def get_atoms(self):
         return self._atoms
 
-    def Get_Length(self):
+    def get_length(self):
         return len(self._atoms)
 
-    def Add_Atom(self, atom):
+    def add_atom(self, atom):
         self._atoms.append(atom)
 
-    def Set_Atom(self, atom_arr):
+    def set_atom(self, atom_arr):
         self._atoms = atom_arr

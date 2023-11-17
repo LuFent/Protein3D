@@ -1,5 +1,4 @@
-class Atom():
-
+class Atom:
     def __init__(self, hparams):
         self.data_col = hparams[0]
         self._atom_name = hparams[1]
@@ -13,18 +12,17 @@ class Atom():
         self._b_factor = hparams[9]
         self._elementsymbol = hparams[10]
 
-    def Get_atom_name(self):
+    def get_atom_name(self):
         return self._atom_name
 
-    def Get_identifier(self):
+    def get_identifier(self):
         return self._identifier
 
-    def Get_Coords(self):
+    def get_coords(self):
         return self._x, self._y, self._z
 
-    def Create_Bond(self, atom_connect):
+    def create_bond(self, atom_connect):
         pass
-
 
 
 """
