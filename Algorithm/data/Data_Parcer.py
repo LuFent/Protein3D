@@ -12,7 +12,7 @@ class HyperParameters():
         self.parser.opt_list('--target_ext', default=".pdb", type=str, tunable=True)
         self.parser.opt_list('--data_dir', default='/data', type=str, tunable=True)
         self.parser.opt_list('--proj_dir', default=root_dir, type=str, tunable=True)
-        self.parser.opt_list('--data_name', default='7jo8', type=str, tunable=True)
+        self.parser.opt_list('--data_name', default='7n1l', type=str, tunable=True)
 
         #параметры командной строки
         #self.parser.add_argument('--data_name', type=str)
