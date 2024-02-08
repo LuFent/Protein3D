@@ -1,15 +1,15 @@
 
-from Arcitecture import CIHBS
-
+from .Arcitecture import CIHBS
+from .CustomPDBParser import PDBParser
 from Bio import PDB as pdb
 from Bio.PDB import Selection
 
 from itertools import chain, count
 
 
-class Protein3D:
+class StructureVisualisation:
     cihbsObj = CIHBS.CIHBS()
-    PDBParser = pdb.PDBParser(QUIET=True)
+    PDBParser = PDBParser(QUIET=True)
 
     def __init__(self, structure_id, structure_file):
 

@@ -1,15 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, abort
 import os
-from werkzeug.utils import secure_filename
+from flask_cors import CORS
+from tempfile import NamedTemporaryFile
+
+from datetime import timedelta
+
+from algorithms.Protein3D import StructureVisualisation
 
 app = Flask(__name__)
+CORS(app)
+app.secret_key = 'your_secret_key'
 app.config['UPLOAD_FOLDER'] = 'pdb'
-app.config['STRUCTURE_FILENAME'] = 'structure.pdb'
 app.config['ALLOWED_EXTENSIONS'] = {'pdb', 'pdb1'}
+
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    _, file_extension = os.path.splitext(filename)
+    return file_extension in app.config['ALLOWED_EXTENSIONS']
 
 
 @app.route("/")
@@ -22,22 +31,30 @@ def serve_pdb_file():
     return send_file("pdb/structure.pdb", as_attachment=True)
 
 
-@app.route("/pdb/load_structure", methods=['POST'])
-def load_structure():
+@app.route("/upload_structure", methods=['POST'])
+def upload_structure():
+
     if 'file' not in request.files:
-        return redirect(request.url)
+        abort(400)
 
     file = request.files['file']
 
-    if file.filename == '':
-        return redirect(request.url)
+    if not file:
+        abort(400)
 
-    if file and allowed_file(file.filename):
-        filename = app.config['STRUCTURE_FILENAME']
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return redirect(url_for('index'))
-    else:
-        return redirect(request.url)
+    try:
+        sid = id(session)
+        temp_file = NamedTemporaryFile(delete=False, mode='w+')
+        temp_file.write(file.read().decode('utf-8'))
+        temp_file.seek(0)
+        structure = StructureVisualisation(sid, temp_file)
+        session.structure = structure
+        temp_file.close()
+    except Exception:
+        abort(400)
+
+    return "200"
+
 
 
 if __name__ == "__main__":
