@@ -16,8 +16,13 @@ An open-source chemistry system, that provides tools to visualize molecular stru
     - on Windows:
         ```
         virtualenv venv
-        source .\venv\Scripts\activate
+        .\venv\Scripts\activate
         ```
+    - to deactivate:
+      ```
+      deactivate
+      ```
+        
 - Install dependencies:
     ```
     pip install -r requirements.txt
