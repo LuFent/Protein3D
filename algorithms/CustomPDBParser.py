@@ -14,8 +14,7 @@ from Bio.File import as_handle
 
 from Bio.PDB.PDBExceptions import PDBConstructionException
 from Bio.PDB.PDBExceptions import PDBConstructionWarning
-
-from Bio.PDB.StructureBuilder import StructureBuilder
+from .CustomStructureBuilder import CustomStructureBuilder
 from Bio.PDB.parse_pdb_header import _parse_pdb_header_list
 
 
@@ -59,7 +58,7 @@ class PDBParser:
         if structure_builder is not None:
             self.structure_builder = structure_builder
         else:
-            self.structure_builder = StructureBuilder()
+            self.structure_builder = CustomStructureBuilder()
         self.header = None
         self.trailer = None
         self.line_counter = 0
