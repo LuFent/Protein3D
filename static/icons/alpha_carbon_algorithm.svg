@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_Слой_2" data-name="Слой 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 47.39 47.39">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke: #fff;
+      }
+
+      .cls-2 {
+        stroke-width: 3px;
+      }
+
+      .cls-3 {
+        fill: #231300;
+        font-family: TrebuchetMS, 'Trebuchet MS';
+        font-size: 10px;
+      }
+
+      .cls-4 {
+        letter-spacing: -.06em;
+      }
+    </style>
+  </defs>
+  <g id="_Слой_1-2" data-name="Слой 1">
+    <ellipse class="cls-1" cx="23.7" cy="23.7" rx="23.55" ry="22.83" transform="translate(-9.82 23.7) rotate(-45)"/>
+    <circle class="cls-1" cx="15.06" cy="32.33" r="8.64"/>
+    <circle class="cls-1" cx="32.33" cy="15.06" r="8.64"/>
+    <line class="cls-2" x1="21.17" y1="26.22" x2="26.22" y2="21.17"/>
+    <text class="cls-3" transform="translate(25.97 18.31) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.98" y="0">A</tspan></text>
+    <text class="cls-3" transform="translate(8.7 35.9) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.98" y="0">A</tspan></text>
+  </g>
+</svg>
