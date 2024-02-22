@@ -5,6 +5,7 @@ from Bio import PDB as pdb
 from Bio.PDB import Selection
 import json
 from itertools import chain, count
+import numpy as np
 
 
 class StructureVisualisation:
@@ -18,6 +19,8 @@ class StructureVisualisation:
 
         self.atoms_ids = [atom.get_serial_number() for atom in
                           Selection.unfold_entities(self.structure, 'A')]
+
+        self.cihbsObj.setParameters(structure=structure)
 
         #for atom in structure.get_atoms():
         #    print(f"{atom.get_serial_number()} {atom.get_name()}")
@@ -67,8 +70,16 @@ class StructureVisualisation:
 
     def getCIHBS(self):
         self.flush_mask()
+
         innerCIHBS = self.cihbsObj.checkInnerGroups(self.structure)
-        CIHBS_ids = set(chain.from_iterable(innerCIHBS))
+        physicalOperators = self.cihbsObj.connectPhysicalOperators()
+        outerCIHBS = self.cihbsObj.connectResidueCIHBS()
+
+        totalCIHBS = np.concatenate((physicalOperators, outerCIHBS), axis=0)
+        #print("totalCIHBS", totalCIHBS)
+        innerCIHBS_ids = [[a.get_serial_number() for a in group] for group in innerCIHBS]
+
+        CIHBS_ids = set(chain.from_iterable(innerCIHBS_ids))
         self.show_atoms = list(CIHBS_ids)
 
     def test_alg(self):
