@@ -1,2 +1,3 @@
 Flask==3.0.2
 biopython==1.83
+Flask-Cors==4.0.0
