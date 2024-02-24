@@ -23,11 +23,13 @@
   <g id="_Слой_1-2" data-name="Слой 1">
     <ellipse class="cls-1" cx="23.33" cy="24.05" rx="22.83" ry="23.55"/>
     <polygon class="cls-2" points="30.39 11.49 16.28 11.49 9.23 24.05 16.28 36.61 30.39 36.61 37.44 24.05 30.39 11.49"/>
-    <circle class="cls-3" cx="16.17" cy="11.49" r="3.93"/>
-    <circle class="cls-3" cx="30.53" cy="11.49" r="3.93"/>
-    <circle class="cls-3" cx="9.23" cy="24.05" r="3.93"/>
-    <circle class="cls-3" cx="16.17" cy="36.61" r="3.93"/>
-    <circle class="cls-3" cx="30.53" cy="36.61" r="3.93"/>
-    <circle class="cls-3" cx="37.44" cy="24.05" r="3.93"/>
+    <g>
+      <circle class="cls-3" cx="16.03" cy="36.7" r="3.93"/>
+      <circle class="cls-3" cx="8.73" cy="24.05" r="3.93"/>
+      <circle class="cls-3" cx="16.03" cy="11.4" r="3.93"/>
+      <circle class="cls-3" cx="30.64" cy="11.4" r="3.93"/>
+      <circle class="cls-3" cx="37.94" cy="24.05" r="3.93"/>
+      <circle class="cls-3" cx="30.64" cy="36.7" r="3.93"/>
+    </g>
   </g>
 </svg>

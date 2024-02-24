@@ -17,6 +17,9 @@ class CIHBS:
     def getCarbonChain(self):
         return self.alphaCarbonChain
 
+    def getMaimChain(self):
+        return self.maimChain
+
     def setNeighbourSearch(self, structure):
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
 

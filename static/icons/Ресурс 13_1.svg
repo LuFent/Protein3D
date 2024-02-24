@@ -11,6 +11,10 @@
         stroke: #fff;
       }
 
+      .cls-4 {
+        letter-spacing: -.06em;
+      }
+
       .cls-2 {
         stroke-width: 3px;
       }
@@ -18,11 +22,7 @@
       .cls-3 {
         fill: #231300;
         font-family: TrebuchetMS, 'Trebuchet MS';
-        font-size: 10px;
-      }
-
-      .cls-4 {
-        letter-spacing: -.06em;
+        font-size: 9px;
       }
     </style>
   </defs>
@@ -31,7 +31,7 @@
     <circle class="cls-1" cx="15.06" cy="32.33" r="8.64"/>
     <circle class="cls-1" cx="32.33" cy="15.06" r="8.64"/>
     <line class="cls-2" x1="21.17" y1="26.22" x2="26.22" y2="21.17"/>
-    <text class="cls-3" transform="translate(25.97 18.31) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.98" y="0">A</tspan></text>
-    <text class="cls-3" transform="translate(8.7 35.9) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.98" y="0">A</tspan></text>
+    <text class="cls-3" transform="translate(8.7 35.16) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.38" y="0">A</tspan></text>
+    <text class="cls-3" transform="translate(27.17 17.95) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.38" y="0">A</tspan></text>
   </g>
 </svg>
