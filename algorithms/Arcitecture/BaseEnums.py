@@ -58,12 +58,14 @@ class Atoms(Enum):
     acceptor = ["O", "S"]
 
 class Groups(Enum):
-    sycleResiduces = ["PRO", "TYR", "HIS", "TRP"]
-    singleResidues = ["LYS", "CYS", "MET", "SER", "THR"]
+    sycleResidues = ["PRO", "TYR", "HIS", "TRP"]
+    singleResidues = {"LYS": "NZ", "SER": "OG", "CYS": "SG", "MET": "SD", "THR": "OG1"}
+    complexResidues = {"ARG": "CZ", "ASN": "CG", "GLN": "CD", "ASP": "CG", "GLU": "CD"}
 
     noCIHBSResidue = ["GLY", "ALA", "VAL", "LEU", "ISO"]
     residueConnectors = ["TYR", "SER", "THR"]
     antiConnectors = ["PRO", "ALA", "VAL", "ILE", "LEU", "MET", "PHE"]
+    doubleBondAcid = {"ASN": "OD1", "GLN": "OE1", "ARG": "NH1", "ASP": "OD1", "GLU": "OE1"}
 
     plusIONResidue = [["ARG", "LYS", "HIS", "PRO"], ["NH1", "NZ", "ND1", "N"]]
     minusIONResidue = [["ASP", "GLN"], ["OE1", "OE2"]]
