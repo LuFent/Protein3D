@@ -2,7 +2,7 @@ import math
 
 from Bio.PDB import Selection, Atom, NeighborSearch
 
-from Arcitecture import BaseEnums
+from . import BaseEnums
 
 class CIHBS:
     def __init__(self):
