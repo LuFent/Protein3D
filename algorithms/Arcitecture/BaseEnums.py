@@ -71,6 +71,3 @@ class Groups(Enum):
     minusIONResidue = [["ASP", "GLN"], ["OE1", "OE2"]]
 
     CIHBSInitialisators = ["PRO", "MET"]
-
-
-
