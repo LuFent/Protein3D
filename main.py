@@ -14,11 +14,12 @@ app.secret_key = 'your_secret_key'
 app.config['UPLOAD_FOLDER'] = 'pdb'
 app.config['ALLOWED_EXTENSIONS'] = {'pdb', 'pdb1'}
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
-
+app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 STRUCTURES_STORE = {}
 
 def requires_structure(func):
     def wrapper(*args, **kwargs):
+        print(session)
         if 'sid' not in session:
             return jsonify({'error': 'Session does not have the structure'}), 400
         return func(*args, **kwargs)
@@ -56,13 +57,13 @@ def upload_structure():
     #try:
     session_id = secrets.token_hex(16)
     session['sid'] = session_id
-
+    print(session)
     temp_file = NamedTemporaryFile(delete=False, mode='w+')
     temp_file.write(file.read().decode('utf-8'))
     temp_file.seek(0)
     structure = StructureVisualisation(session_id, temp_file)
     STRUCTURES_STORE[session_id] = structure
-    session.structure = structure
+    #session.structure = structure
     temp_file.close()
     #except Exception:
     #    abort(400)
