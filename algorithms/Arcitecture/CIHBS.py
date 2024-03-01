@@ -1,7 +1,8 @@
+
 import math
 
 from Bio.PDB import Selection, Atom, NeighborSearch
-import time
+import warnings
 
 from . import BaseEnums
 
@@ -29,9 +30,20 @@ class CIHBS:
         return self.alphaCarbonChain
 
     def getInnerCIHBS(self):
-        return self.innerCIHBS
+        if self.innerCIHBS:
+            return self.innerCIHBS
+        raise ValueError("Возвращается пустой объект.")
+
+    def getNewCIHBS(self):
+        if self.newCIHBS:
+            return self.newCIHBS
+        raise ValueError("Возвращается пустой объект.")
 
     def setNeighbourSearch(self, structure):
+        """coord_list = [a.get_coord() for a in structure]
+        print([a for a in structure])
+        self.coords = numpy.array(coord_list, dtype="d")
+        print("self.coords", self.coords.shape)"""
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
 
     def findTargetNeigbourExept(self, atom, radius, target):
@@ -52,12 +64,15 @@ class CIHBS:
         # print("connecting", atom1, atom2)
         self.newCIHBS.append([atom1, atom2, bond])
 
+
+
     def checkInnerGroups(self, structure):
 
         cihbsList = []
         for residue in structure.get_residues():
-            # print("\nfor residue = ", residue.get_resname())
-            if residue.get_resname() != "HOH":
+            if residue.get_resname() != "HOH":  #in BaseEnums.Groups.allResidues.value:
+
+                #print("\nfor residue = ", residue)
                 # checking for benzene rings and adding them
                 if residue.get_resname() in BaseEnums.Groups.sycleResidues.value:
                     cycle = list(residue.get_atoms())
@@ -68,42 +83,44 @@ class CIHBS:
                         if residue.get_resname() == "PRO":
                             cycle = [elem for elem in cycle if (elem.get_name() not in ["C", "O"])]
                     except ValueError:
-                        # print("Не найден опорный атом")
-                        pass
+                        warnings.warn("Не найден опорный атом CG для {}. Проверьте целостность данных.".format(residue))
 
                     # print("atoms cycle", cycle)
                     del atomsName
                     cihbsList.append(cycle)
 
-                self.setNeighbourSearch(residue)
-                # simple residues CN, CS, CO and etc...
-                if residue.get_resname() in BaseEnums.Groups.singleResidues.value.keys():
-                    try:
-                        atom = BaseEnums.Groups.singleResidues.value.get(residue.get_resname())
-                        atom_obj = list(residue.get_atoms())[
-                            [element.get_name() for element in residue.get_atoms()].index(atom)]
-                        neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
+                try:
+                    self.setNeighbourSearch(residue)
+                    # simple residues CN, CS, CO and etc...
+                    if residue.get_resname() in BaseEnums.Groups.singleResidues.value.keys():
+                        try:
+                            atom = BaseEnums.Groups.singleResidues.value.get(residue.get_resname())
+                            atom_obj = list(residue.get_atoms())[
+                                [element.get_name() for element in residue.get_atoms()].index(atom)]
+                            neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
 
-                        # print("Neighbours simple group = ", len(neighbour), neighbour)
-                        cihbsList.append(neighbour)
-                    except ValueError:
-                        # print("Не найден опорный атом", BaseEnums.Groups.singleResidues.value.get(residue.get_resname()))
-                        pass
+                            # print("Neighbours simple group = ", len(neighbour), neighbour)
+                            cihbsList.append(neighbour)
+                        except ValueError:
+                            warnings.warn("Не найден опорный атом в двуплетах {}".format(residue))
 
-                # all troplets OCO, NCN and etc...
-                if residue.get_resname() in BaseEnums.Groups.complexResidues.value.keys():
-                    try:
-                        atom = BaseEnums.Groups.complexResidues.value.get(residue.get_resname())
-                        atom_obj = list(residue.get_atoms())[
-                            [element.get_name() for element in residue.get_atoms()].index(atom)]
-                        neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
-                        neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
+                    # all troplets OCO, NCN and etc...
+                    if residue.get_resname() in BaseEnums.Groups.complexResidues.value.keys():
+                        try:
+                            atom = BaseEnums.Groups.complexResidues.value.get(residue.get_resname())
+                            atom_obj = list(residue.get_atoms())[
+                                [element.get_name() for element in residue.get_atoms()].index(atom)]
+                            neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
+                            neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
 
-                        # print("Neighbours complex group = ", len(neighbour), neighbour)
-                        cihbsList.append(neighbour)
-                    except ValueError:
-                        # print("Не найден опорный атом", BaseEnums.Groups.complexResidues.value.get(residue.get_resname()))
-                        pass
+                            # print("Neighbours complex group = ", len(neighbour), neighbour)
+                            cihbsList.append(neighbour)
+                        except ValueError:
+                            warnings.warn("Не найден опорный атом в триплетах {}".format(residue) )
+                            pass
+                except IndexError:
+                    warnings.warn("Ошибка распаковки аминокислоты {}. Проверьте целостность данных.".format(residue))
+
 
         # NCO
         tmp = [i for i in self.mainChain if (i.get_name() != "CA")]
@@ -120,12 +137,12 @@ class CIHBS:
                 del tmp_list
             else:
                 cihbsDict[i.get_parent()] = [i]
-        #for key, value in cihbsDict.items():
-            #print(key, value)
 
-        print(len(cihbsList), len(cihbsDict))
+
         self.innerCIHBSDict = cihbsDict
         self.innerCIHBS = cihbsList
+
+
 
     def getResidueAtoms(self, atom):
         # print("parent = ", atom.get_parent())
@@ -228,7 +245,9 @@ class CIHBS:
 
             #print("\n")
         # print(self.newCIHBS)
-        return self.newCIHBS
+        #return self.newCIHBS
+
+
 
     def removeNitrogen(self, group):
         tmp = []
@@ -247,11 +266,11 @@ class CIHBS:
 
     def checkForIons(self, group, Ion):
         if (Ion == BaseEnums.Atoms.donor):
-            group = [i for i in group if (i.get_name() not in BaseEnums.Groups.plusIONResidue.value[1]
-                                          and i.get_parent() not in BaseEnums.Groups.plusIONResidue.value[0])]
+            group = [i for i in group if i.get_name() not in BaseEnums.Groups.plusIONResidue.value.keys()
+                                          and i.get_parent() not in BaseEnums.Groups.plusIONResidue.value.values()]
         else:
-            group = [i for i in group if (i.get_name() not in BaseEnums.Groups.minusIONResidue.value[1]
-                                          and i.get_parent() not in BaseEnums.Groups.minusIONResidue.value[0])]
+            group = [i for i in group if i.get_name() not in BaseEnums.Groups.minusIONResidue.value.keys()
+                                          and i.get_parent() not in BaseEnums.Groups.minusIONResidue.value.values()]
         # print("checkForIons after cut", group)
         return group
 
@@ -270,7 +289,7 @@ class CIHBS:
         #print(cleanedCIHBS)
 
         # gotInitiatorAcid = False
-        self.setNeighbourSearch(cleanedCIHBS)  # sum(map, [])
+        self.setNeighbourSearch(cleanedCIHBS)
         for elem in cleanedCIHBS:
             #print("for element", elem, elem.get_parent())
 
@@ -299,4 +318,5 @@ class CIHBS:
                                       else BaseEnums.CHIBSBond.acceptorAcceptor)
 
             # print("\n")
-        return self.newCIHBS
+        #return self.newCIHBS
+

@@ -71,14 +71,17 @@ class StructureVisualisation:
     def getCIHBS(self):
         self.flush_mask()
 
-        innerCIHBS = self.cihbsObj.checkInnerGroups(self.structure)
-        physicalOperators = self.cihbsObj.connectPhysicalOperators()
-        outerCIHBS = self.cihbsObj.connectResidueCIHBS()
 
-        totalCIHBS = np.concatenate((physicalOperators, outerCIHBS), axis=0)
-        print("totalCIHBS", totalCIHBS)
+        self.cihbsObj.checkInnerGroups(self.structure)
+        innerCIHBS = self.cihbsObj.getInnerCIHBS()
 
-        CIHBS_ids = set(chain.from_iterable(innerCIHBS))
+        self.cihbsObj.connectPhysicalOperators()
+        self.cihbsObj.connectResidueCIHBS()
+        newCIHBS = self.cihbsObj.getNewCIHBS()
+
+        #print("totalCIHBS", totalCIHBS)
+        CIHBS_ids = [atom.get_serial_number() for atom in innerCIHBS]
+
         self.show_atoms = list(CIHBS_ids)
 
     def test_alg(self):
