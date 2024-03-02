@@ -237,10 +237,10 @@ class CIHBS:
 
         self.setNeighbourSearch(cleanedCIHBS)
         for elem in cleanedCIHBS:
-            print("for element", elem, elem.get_parent())
+            #print("for element", elem, elem.get_parent())
 
             neighbours = self.findTargetNeigbourExept(elem, 3.7, ["N", "O", "S"])
-            print("neighbours", [i.get_parent() for i in neighbours], neighbours)
+            #print("neighbours", [i.get_parent() for i in neighbours], neighbours)
 
             # проверяем на ионы
             neighbours = self.checkForIons(neighbours, BaseEnums.Atoms.donor
@@ -248,7 +248,7 @@ class CIHBS:
 
             # проверяем на ретроспективность ССИВС
             neighbours = self.checkRetrospective(self.getResseq(elem.get_parent()), neighbours)
-            print("neighbours after sort", [i.get_parent() for i in neighbours], neighbours)
+            #print("neighbours after sort", [i.get_parent() for i in neighbours], neighbours)
 
             if (neighbours != []):
                 for neighbour in neighbours:
@@ -257,5 +257,5 @@ class CIHBS:
                                                   elem.element == neighbour.element and elem.element == "O")
                                       else BaseEnums.CHIBSBond.acceptorAcceptor)
 
-            print("\n")
+            #print("\n")
 
