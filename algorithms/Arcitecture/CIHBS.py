@@ -40,10 +40,6 @@ class CIHBS:
         raise ValueError("Возвращается пустой объект.")
 
     def setNeighbourSearch(self, structure):
-        """coord_list = [a.get_coord() for a in structure]
-        print([a for a in structure])
-        self.coords = numpy.array(coord_list, dtype="d")
-        print("self.coords", self.coords.shape)"""
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
 
     def findTargetNeigbourExept(self, atom, radius, target):
@@ -53,11 +49,6 @@ class CIHBS:
 
     def findTargetNeigbour(self, atom, radius, target):
         neighbours = [elem for elem in self.ns.search(atom.get_coord(), radius, 'A') if elem.element in target]
-        return neighbours
-
-    def findNeighboursExeptAtom(self, atom, radius, condotion):
-        neighbours = [elem for elem in self.ns.search(atom.get_coord(), radius, 'A') if
-                      (elem.element != condotion or elem == atom)]
         return neighbours
 
     def connectAtoms(self, atom1, atom2, bond):
@@ -70,7 +61,7 @@ class CIHBS:
 
         cihbsList = []
         for residue in structure.get_residues():
-            if residue.get_resname() != "HOH":  #in BaseEnums.Groups.allResidues.value:
+            if residue.get_resname() != "HOH":
 
                 #print("\nfor residue = ", residue)
                 # checking for benzene rings and adding them
@@ -99,7 +90,6 @@ class CIHBS:
                                 [element.get_name() for element in residue.get_atoms()].index(atom)]
                             neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
 
-                            # print("Neighbours simple group = ", len(neighbour), neighbour)
                             cihbsList.append(neighbour)
                         except ValueError:
                             warnings.warn("Не найден опорный атом в двуплетах {}".format(residue))
@@ -127,7 +117,6 @@ class CIHBS:
         cihbsList.append(tmp)
 
         cihbsList = sum(cihbsList, [])
-
         cihbsDict = {}
         for i in cihbsList:
             if i.get_parent() in cihbsDict.keys():
@@ -138,34 +127,14 @@ class CIHBS:
             else:
                 cihbsDict[i.get_parent()] = [i]
 
-
         self.innerCIHBSDict = cihbsDict
         self.innerCIHBS = cihbsList
 
 
 
-    def getResidueAtoms(self, atom):
-        # print("parent = ", atom.get_parent())
-        return list(atom.get_parent().get_atoms())
-
     def getResseq(self, residue):
         resseq = [st.split('=') for st in str(residue).split(' ')]
         return resseq[4][1]
-
-    def getTargetInMainChain(self, residue, name):
-        return [i for i in self.mainChain if i.get_parent() == residue and i.get_name() == name][0]
-
-    def findInnerCIHBS(self, residue):
-        atoms = [i for i in self.getInnerCIHBS() if i.get_parent() == residue]
-        return atoms
-
-    def removeCarbon(self, group):
-        tmp = []
-        for elem in group:
-            # print("elem.element in removeCarbon", elem.element)
-            if elem.get_name()[0] != "C":
-                tmp.append(elem)
-        return tmp
 
     def findClosest(self, atoms, target):
         atoms = [i for i in atoms if (i.element != "C"
@@ -244,25 +213,7 @@ class CIHBS:
                 else BaseEnums.CHIBSBond.acceptorAcceptor)
 
             #print("\n")
-        # print(self.newCIHBS)
-        #return self.newCIHBS
 
-
-
-    def removeNitrogen(self, group):
-        tmp = []
-        for elem in group:
-            # print("elem.element in removeCarbon", elem.element)
-            if ((elem.get_name()[0] == "N" and len(elem.get_name()) != 1) or elem.get_name()[0] != "N"):
-                tmp.append(elem)
-        return tmp
-
-    def cleanMainChainAndCarbon(self, group):
-        tmp = []
-        for elem in group:
-            if (len(elem.get_name()) != 1 and elem.get_name()[0] != "C"):
-                tmp.append(elem)
-        return tmp
 
     def checkForIons(self, group, Ion):
         if (Ion == BaseEnums.Atoms.donor):
@@ -274,9 +225,6 @@ class CIHBS:
         # print("checkForIons after cut", group)
         return group
 
-    def checkForMainChain(self, group):
-        return [i for i in group if (i not in self.mainChain)]
-
     def checkRetrospective(self, residue_resseq, neighbours):
         return [i for i in neighbours if int(self.getResseq(i.get_parent())) < int(residue_resseq)]
 
@@ -286,18 +234,13 @@ class CIHBS:
         cleanedCIHBS = [i for i in self.innerCIHBS
                         if i.element != "C"
                         and i.get_name() != "N"]
-        #print(cleanedCIHBS)
 
-        # gotInitiatorAcid = False
         self.setNeighbourSearch(cleanedCIHBS)
         for elem in cleanedCIHBS:
-            #print("for element", elem, elem.get_parent())
-
-            # if(elem.get_parent().get_resname() in BaseEnums.Groups.CIHBSInitialisators.value):
-            #    gotInitiatorAcid = True
+            print("for element", elem, elem.get_parent())
 
             neighbours = self.findTargetNeigbourExept(elem, 3.7, ["N", "O", "S"])
-            #print("neighbours", [i.get_parent() for i in neighbours], neighbours)
+            print("neighbours", [i.get_parent() for i in neighbours], neighbours)
 
             # проверяем на ионы
             neighbours = self.checkForIons(neighbours, BaseEnums.Atoms.donor
@@ -305,10 +248,7 @@ class CIHBS:
 
             # проверяем на ретроспективность ССИВС
             neighbours = self.checkRetrospective(self.getResseq(elem.get_parent()), neighbours)
-            #print("neighbours after sort", [i.get_parent() for i in neighbours], neighbours)
-
-            # проверяем на входжение в основную цепь
-            # neighbours = self.checkForMainChain(neighbours)
+            print("neighbours after sort", [i.get_parent() for i in neighbours], neighbours)
 
             if (neighbours != []):
                 for neighbour in neighbours:
@@ -317,6 +257,5 @@ class CIHBS:
                                                   elem.element == neighbour.element and elem.element == "O")
                                       else BaseEnums.CHIBSBond.acceptorAcceptor)
 
-            # print("\n")
-        #return self.newCIHBS
+            print("\n")
 
