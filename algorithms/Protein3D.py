@@ -87,10 +87,15 @@ class StructureVisualisation:
         self.flush_mask()
 
         self.cihbsObj.checkInnerGroups(self.structure)
-        innerCIHBS = self.cihbsObj.innerCIHBSDict
-        innerCIHBS_ids = [[a.get_serial_number() for a in group] for group in innerCIHBS.values()]
-        CIHBS_ids = set(chain.from_iterable(innerCIHBS_ids))
-        self.show_atoms = list(CIHBS_ids)
+        innerCIHBS = self.cihbsObj.getInnerCIHBS()
+
+        self.cihbsObj.connectPhysicalOperators()
+        self.cihbsObj.connectResidueCIHBS()
+
+        newCIHBS = self.cihbsObj.getNewCIHBS()
+
+        self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
+        self.show_atoms = innerCIHBS
 
         # physicalOperators = self.cihbsObj.connectPhysicalOperators()
         # outerCIHBS = self.cihbsObj.connectResidueCIHBS()
