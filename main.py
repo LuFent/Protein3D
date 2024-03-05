@@ -3,10 +3,11 @@ import os
 from flask_cors import CORS
 from tempfile import NamedTemporaryFile
 import secrets
-
+from Bio.PDB import Selection, PDBIO, Select
 from datetime import timedelta
 
-from algorithms.Protein3D import StructureVisualisation
+from algorithms.Protein3D import StructureVisualisation, NotDisordered
+
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -17,9 +18,9 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 STRUCTURES_STORE = {}
 
+
 def requires_structure(func):
     def wrapper(*args, **kwargs):
-        print(session)
         if 'sid' not in session:
             return jsonify({'error': 'Session does not have the structure'}), 400
         return func(*args, **kwargs)
@@ -46,7 +47,6 @@ def serve_pdb_file():
 
 @app.route("/upload_structure", methods=['POST'])
 def upload_structure():
-
     if 'file' not in request.files:
         abort(400)
 
@@ -57,18 +57,19 @@ def upload_structure():
     #try:
     session_id = secrets.token_hex(16)
     session['sid'] = session_id
-    print(session)
-    temp_file = NamedTemporaryFile(delete=False, mode='w+')
+    temp_file = NamedTemporaryFile(delete=True, mode='w+')
     temp_file.write(file.read().decode('utf-8'))
     temp_file.seek(0)
-    structure = StructureVisualisation(session_id, temp_file)
-    STRUCTURES_STORE[session_id] = structure
-    #session.structure = structure
+    structure = StructureVisualisation.get_structure(session_id, temp_file)
     temp_file.close()
-    #except Exception:
-    #    abort(400)
+    cleaned_temp_file = NamedTemporaryFile(delete=False, mode='w+')
+    StructureVisualisation.clean_file(structure, cleaned_temp_file)
+    cleaned_temp_file.seek(0)
+    cleaned_structure = StructureVisualisation(session_id, cleaned_temp_file)
+    #print(cleaned_temp_file.read())
 
-    return "200"
+    STRUCTURES_STORE[session_id] = cleaned_structure
+    return send_file(cleaned_temp_file.name, as_attachment=True)
 
 
 @app.route("/exec_algorithm", methods=['POST'])
@@ -82,8 +83,6 @@ def exec_algorithm():
             return jsonify({'error': 'JSON data does not contain the "alg" key'}), 400
     else:
         return jsonify({'error': 'Request data is not JSON'}), 400
-
-
 
     structure = STRUCTURES_STORE[session["sid"]]
     mask = structure.execute_algorithm(alg)

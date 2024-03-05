@@ -57,54 +57,57 @@ class CIHBS:
 
         cihbsList = []
         for residue in structure.get_residues():
-            # print("\nfor residue = ", residue.get_resname())
-            if residue.get_resname() != "HOH":
-                # checking for benzene rings and adding them
-                if residue.get_resname() in BaseEnums.Groups.sycleResidues.value:
-                    cycle = list(residue.get_atoms())
-                    atomsName = [x.get_name() for x in cycle]
 
-                    try:
-                        cycle = cycle[atomsName.index("CG"):]
-                        if residue.get_resname() == "PRO":
-                            cycle = [elem for elem in cycle if (elem.get_name() not in ["C", "O"])]
-                    except ValueError:
-                        # print("Не найден опорный атом")
-                        pass
+            try:
+                # print("\nfor residue = ", residue.get_resname())
+                if residue.get_resname() != "HOH":
+                    # checking for benzene rings and adding them
+                    if residue.get_resname() in BaseEnums.Groups.sycleResidues.value:
+                        cycle = list(residue.get_atoms())
+                        atomsName = [x.get_name() for x in cycle]
 
-                    # print("atoms cycle", cycle)
-                    del atomsName
-                    cihbsList.append(cycle)
-                print(residue.get_resname())
-                self.setNeighbourSearch(residue)
-                # simple residues CN, CS, CO and etc...
-                if residue.get_resname() in BaseEnums.Groups.singleResidues.value.keys():
-                    try:
-                        atom = BaseEnums.Groups.singleResidues.value.get(residue.get_resname())
-                        atom_obj = list(residue.get_atoms())[
-                            [element.get_name() for element in residue.get_atoms()].index(atom)]
-                        neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
+                        try:
+                            cycle = cycle[atomsName.index("CG"):]
+                            if residue.get_resname() == "PRO":
+                                cycle = [elem for elem in cycle if (elem.get_name() not in ["C", "O"])]
+                        except ValueError:
+                            # print("Не найден опорный атом")
+                            pass
 
-                        # print("Neighbours simple group = ", len(neighbour), neighbour)
-                        cihbsList.append(neighbour)
-                    except ValueError:
-                        # print("Не найден опорный атом", BaseEnums.Groups.singleResidues.value.get(residue.get_resname()))
-                        pass
+                        # print("atoms cycle", cycle)
+                        del atomsName
+                        cihbsList.append(cycle)
+                    self.setNeighbourSearch(residue)
+                    # simple residues CN, CS, CO and etc...
+                    if residue.get_resname() in BaseEnums.Groups.singleResidues.value.keys():
+                        try:
+                            atom = BaseEnums.Groups.singleResidues.value.get(residue.get_resname())
+                            atom_obj = list(residue.get_atoms())[
+                                [element.get_name() for element in residue.get_atoms()].index(atom)]
+                            neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
 
-                # all troplets OCO, NCN and etc...
-                if residue.get_resname() in BaseEnums.Groups.complexResidues.value.keys():
-                    try:
-                        atom = BaseEnums.Groups.complexResidues.value.get(residue.get_resname())
-                        atom_obj = list(residue.get_atoms())[
-                            [element.get_name() for element in residue.get_atoms()].index(atom)]
-                        neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
-                        neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
+                            # print("Neighbours simple group = ", len(neighbour), neighbour)
+                            cihbsList.append(neighbour)
+                        except ValueError:
+                            # print("Не найден опорный атом", BaseEnums.Groups.singleResidues.value.get(residue.get_resname()))
+                            pass
 
-                        # print("Neighbours complex group = ", len(neighbour), neighbour)
-                        cihbsList.append(neighbour)
-                    except ValueError:
-                        # print("Не найден опорный атом", BaseEnums.Groups.complexResidues.value.get(residue.get_resname()))
-                        pass
+                    # all troplets OCO, NCN and etc...
+                    if residue.get_resname() in BaseEnums.Groups.complexResidues.value.keys():
+                        try:
+                            atom = BaseEnums.Groups.complexResidues.value.get(residue.get_resname())
+                            atom_obj = list(residue.get_atoms())[
+                                [element.get_name() for element in residue.get_atoms()].index(atom)]
+                            neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
+                            neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
+
+                            # print("Neighbours complex group = ", len(neighbour), neighbour)
+                            cihbsList.append(neighbour)
+                        except ValueError:
+                            # print("Не найден опорный атом", BaseEnums.Groups.complexResidues.value.get(residue.get_resname()))
+                            pass
+            except Exception:
+                continue
 
         # NCO
         tmp = [i for i in self.mainChain if (i.get_name() != "CA")]
