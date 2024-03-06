@@ -93,6 +93,8 @@ class StructureVisualisation:
         self.cihbsObj.connectResidueCIHBS()
 
         newCIHBS = self.cihbsObj.getNewCIHBS()
+        self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
+        self.show_atoms = innerCIHBS
 
         self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
         self.show_atoms = innerCIHBS
@@ -104,18 +106,7 @@ class StructureVisualisation:
         # print("totalCIHBS", totalCIHBS)
     def test_alg(self):
         self.flush_mask()
-        hide_atoms = []
-        for model in self.structure:
-            # Iterate through each chain in the model
-            for chain in model:
-                # Iterate through each residue in the chain
-                for residue in chain:
-                    if residue.get_resname() != "HOH":
-                        continue
-                    for atom in residue:
-                        hide_atoms.append(atom.get_serial_number())
-
-        self.hide_atoms = hide_atoms
+        atom_mask = self.cihbsObj.getPropertiesColoredAtoms(self.structure)
 
 
     def execute_algorithm(self, alg):

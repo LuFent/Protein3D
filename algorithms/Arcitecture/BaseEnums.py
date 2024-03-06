@@ -5,6 +5,15 @@ class CHIBSBond(Enum):
     donorAcceptor = 2
     acceptorAcceptor = 3
 
+class AcidGroups(Enum):
+    alkaline = {1: ["LYS", "ARG"]}
+    acidic = {2: ["ASP", "GLU"]}
+    neutral = {3: ["ASN", "GLN"]}
+    weaklyPolar = {4: ["SER", "THR"]}
+    nonPolar = {5: ["GLY", "VAL", "LEU", "ILE", "ALA"]}
+    sulfid = {6: ["CYS", "MET"]}
+    cyclic = {7: ["PRO", "PHE", "TYR", "HIS", "TRP"]}
+
 class Atoms(Enum):
     singleTargetElements = ["N", "O", "S"]
     allAtomsElements = ["N", "O", "S", "C"]
