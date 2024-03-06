@@ -1,16 +1,21 @@
-
 from .Arcitecture import CIHBS
 from .CustomPDBParser import PDBParser
 from Bio import PDB as pdb
-from Bio.PDB import Selection
+from Bio.PDB import Selection,PDBIO, Select
 import json
+
 from itertools import chain, count
 import numpy as np
+
+class NotDisordered(Select):
+    def accept_atom(self, atom):
+        return not atom.is_disordered() or atom.get_altloc() == "A"
 
 
 class StructureVisualisation:
     cihbsObj = CIHBS.CIHBS()
     PDBParser = PDBParser(QUIET=True)
+    io = PDBIO()
 
     def __init__(self, structure_id, structure_file):
 
@@ -28,6 +33,14 @@ class StructureVisualisation:
         self.extra_bonds = []
         self.hide_atoms = []
         self.show_atoms = []
+
+    @classmethod
+    def get_structure(cls, structure_id, structure_file):
+        return cls.PDBParser.get_structure(structure_id, structure_file)
+    @classmethod
+    def clean_file(cls, structure, file):
+        cls.io.set_structure(structure)
+        cls.io.save(file, select=NotDisordered())
 
     def flush_mask(self):
         self.hide_atoms = []
@@ -54,8 +67,10 @@ class StructureVisualisation:
             for chain in model:
                 # Iterate through each residue in the chain
                 for residue in chain:
+
                     # Iterate through each atom in the residue
                     for atom in residue:
+
                         if atom.get_name() == "CA":
                             show_ids.append(atom.get_serial_number())
                             if previous_atom is None:
@@ -71,33 +86,21 @@ class StructureVisualisation:
     def getCIHBS(self):
         self.flush_mask()
 
-
         self.cihbsObj.checkInnerGroups(self.structure)
         innerCIHBS = self.cihbsObj.getInnerCIHBS()
 
         self.cihbsObj.connectPhysicalOperators()
         self.cihbsObj.connectResidueCIHBS()
+
         newCIHBS = self.cihbsObj.getNewCIHBS()
+        self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
+        self.show_atoms = innerCIHBS
 
-        #print("totalCIHBS", totalCIHBS)
-        CIHBS_ids = [atom.get_serial_number() for atom in innerCIHBS]
 
-        self.show_atoms = list(CIHBS_ids)
 
     def test_alg(self):
         self.flush_mask()
-        hide_atoms = []
-        for model in self.structure:
-            # Iterate through each chain in the model
-            for chain in model:
-                # Iterate through each residue in the chain
-                for residue in chain:
-                    if residue.get_resname() != "HOH":
-                        continue
-                    for atom in residue:
-                        hide_atoms.append(atom.get_serial_number())
-
-        self.hide_atoms = hide_atoms
+        atom_mask = self.cihbsObj.getPropertiesColoredAtoms(self.structure)
 
 
     def execute_algorithm(self, alg):
@@ -115,4 +118,3 @@ class StructureVisualisation:
 
         else:
             return None
-

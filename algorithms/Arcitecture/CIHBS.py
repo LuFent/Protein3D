@@ -12,15 +12,16 @@ class CIHBS:
         self.newCIHBS = []
 
     def setParameters(self, structure):
-        self.alphaCarbonChain = [atom for atom in Selection.unfold_entities(structure, 'A') if atom.get_name() == "CA"]
-        self.mainChain = [atom for atom in Selection.unfold_entities(structure, 'A') if
-                          ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
-                           and atom.get_parent().get_resname() != "HOH")]
-        self.mainChainDict = {atom.get_parent(): atom.get_name() for atom in Selection.unfold_entities(structure, 'A') if
-                          ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
-                           and atom.get_parent().get_resname() != "HOH")}
-        self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
+        self.alphaCarbonChain = [atom for atom in Selection.unfold_entities(structure, 'A')
+                                 if atom.get_name() == "CA"]
+        self.mainChain = [atom for atom in Selection.unfold_entities(structure, 'A')
+                          if((atom.get_name() == "CA" or len(atom.get_name()) == 1)
+                              and atom.get_parent().get_resname() != "HOH")]
+        self.mainChainDict = {atom.get_parent(): atom.get_name() for atom in Selection.unfold_entities(structure, 'A')
+                              if((atom.get_name() == "CA" or len(atom.get_name()) == 1)
+                                  and atom.get_parent().get_resname() != "HOH")}
 
+        self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
         self.nsStructure = NeighborSearch(Selection.unfold_entities(structure, 'A'))
 
     def getMainChain(self):
@@ -31,7 +32,7 @@ class CIHBS:
 
     def getInnerCIHBS(self):
         if self.innerCIHBS:
-            return self.innerCIHBS
+            return [atom.get_serial_number() for atom in self.innerCIHBS]
         raise ValueError("Возвращается пустой объект.")
 
     def getNewCIHBS(self):
@@ -53,7 +54,34 @@ class CIHBS:
 
     def connectAtoms(self, atom1, atom2, bond):
         # print("connecting", atom1, atom2)
-        self.newCIHBS.append([atom1, atom2, bond])
+        self.newCIHBS.append([atom1.get_serial_number(), atom2.get_serial_number(), bond])
+
+    def sumArrays(self, lst):
+        res = []
+        for x in lst:
+            res.extend(x if isinstance(x, list) else [x])
+        return res
+
+    def getPropertiesColoredAtoms(self, structure):
+        coloredAtoms = {}
+        for residue in structure.get_residues():
+            if(residue.get_resname() != "HOH"):
+                try:
+                    index = [list(i.value.keys())[0] for i in BaseEnums.AcidGroups if residue.get_resname() in list(i.value.values())[0]][0]
+
+                    if index in coloredAtoms.keys():
+                        tmp_list = coloredAtoms.get(index)
+                        tmp_list.append([i.get_serial_number() for i in residue.get_atoms()])
+                        tmp_list = self.sumArrays(tmp_list)
+                        coloredAtoms.update({index: tmp_list})
+                        del tmp_list
+                    else:
+                        coloredAtoms[index] = list([i.get_serial_number() for i in residue.get_atoms()])
+                except IndexError:
+                    pass
+
+        for i in coloredAtoms:
+            print(i)
 
 
 
@@ -63,21 +91,19 @@ class CIHBS:
         for residue in structure.get_residues():
             if residue.get_resname() != "HOH":
 
-                #print("\nfor residue = ", residue)
-                # checking for benzene rings and adding them
+                # cycle acid
                 if residue.get_resname() in BaseEnums.Groups.sycleResidues.value:
                     cycle = list(residue.get_atoms())
-                    atomsName = [x.get_name() for x in cycle]
+                    atoms_name = [x.get_name() for x in cycle]
 
                     try:
-                        cycle = cycle[atomsName.index("CG"):]
+                        cycle = cycle[atoms_name.index("CG"):]
                         if residue.get_resname() == "PRO":
                             cycle = [elem for elem in cycle if (elem.get_name() not in ["C", "O"])]
                     except ValueError:
-                        warnings.warn("Не найден опорный атом CG для {}. Проверьте целостность данных.".format(residue))
+                        pass
 
-                    # print("atoms cycle", cycle)
-                    del atomsName
+                    del atoms_name
                     cihbsList.append(cycle)
 
                 try:
@@ -92,7 +118,7 @@ class CIHBS:
 
                             cihbsList.append(neighbour)
                         except ValueError:
-                            warnings.warn("Не найден опорный атом в двуплетах {}".format(residue))
+                            pass
 
                     # all troplets OCO, NCN and etc...
                     if residue.get_resname() in BaseEnums.Groups.complexResidues.value.keys():
@@ -103,16 +129,13 @@ class CIHBS:
                             neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
                             neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
 
-                            # print("Neighbours complex group = ", len(neighbour), neighbour)
                             cihbsList.append(neighbour)
                         except ValueError:
-                            warnings.warn("Не найден опорный атом в триплетах {}".format(residue) )
                             pass
                 except IndexError:
-                    warnings.warn("Ошибка распаковки аминокислоты {}. Проверьте целостность данных.".format(residue))
+                    pass
 
 
-        # NCO
         tmp = [i for i in self.mainChain if (i.get_name() != "CA")]
         cihbsList.append(tmp)
 
@@ -151,38 +174,39 @@ class CIHBS:
 
         neighbours = [i for i in self.findTargetNeigbour(target_element, 4.0, find_element)]
         # if abs( int(self.getResseq(i.get_parent())) - int(self.getResseq(target_element.get_parent())) ) > 4]
-        print("chain connection failed", str(target_element), target_element.get_parent())
+        #print("chain connection failed", str(target_element), target_element.get_parent())
         if neighbours != [] and neighbours:
-            print("no ATOM found, found alternative variant",
-                  [i.get_parent() for i in neighbours], neighbours)
+            #print("no ATOM found, found alternative variant",
+            #      [i.get_parent() for i in neighbours], neighbours)
             try:
-                print("closest is", self.findClosest(neighbours, target_element).get_parent(),
-                      self.findClosest(neighbours, target_element))
+                #print("closest is", self.findClosest(neighbours, target_element).get_parent(),
+                #      self.findClosest(neighbours, target_element))
 
                 self.connectAtoms(self.findClosest(neighbours, target_element), target_element,
                                   BaseEnums.CHIBSBond.physicalOperator)
             except AttributeError:
-                print("nobody nearby...")
+                pass
+                #print("nobody nearby...")
 
     def connectPhysicalOperators(self):
         self.setNeighbourSearch(self.innerCIHBS)
 
         # получаем пентофрагмент
-        for i in range(5, len(self.alphaCarbonChain)):
-            group_4 = self.alphaCarbonChain[i - 5].get_parent()
+        for i in range(4, len(self.alphaCarbonChain)):
             group_0 = self.alphaCarbonChain[i].get_parent()
+            group_4 = self.alphaCarbonChain[i - 4].get_parent()
 
-            # if group[4].get_parent().get_resname() not in BaseEnums.Groups.antiConnectors.value:
             # получаем внутренние ССИВС для i-го элемента
-            #print("for alpha group", [j.get_parent() for j in group])
+            #print("for alpha group", group_0, group_4)
 
-            groupCIHBS = self.innerCIHBSDict.get(group_4)
-            #print("groupCIHBS", [i.get_parent() for i in groupCIHBS], groupCIHBS)
+            groupCIHBS = self.innerCIHBSDict.get(group_0)
+            #print("groupCIHBS", groupCIHBS[0].get_parent(), groupCIHBS)
 
             def getTargetElementInResidue(group, target):
                 return  list(group.get_atoms())[list(i.get_name() for i in group.get_atoms()).index(target)]
-            i_0_element = getTargetElementInResidue(group_4, "N")
-            i_4_element = getTargetElementInResidue(group_0, "O")
+            i_0_element = getTargetElementInResidue(group_0, "N")
+            i_4_element = getTargetElementInResidue(group_4, "O")
+            #print(i_0_element.get_parent(), i_4_element.get_parent())
 
             groupCIHBS = groupCIHBS[:groupCIHBS.index(i_0_element)]
 
@@ -192,6 +216,8 @@ class CIHBS:
             #    self.connectAtoms(i_3_element, groupCIHBS[0], BaseEnums.CHIBSBond.outerCIHBS)
 
             # иначе соединяем 0 и 4
+            dist =  math.dist(i_0_element.get_vector(), i_4_element.get_vector())
+            #print("distance in main chain = ", dist )
             if math.dist(i_4_element.get_coord(), i_0_element.get_coord()) <= 4:
                 #print("connecting in chain = ", math.dist(i_0_element.get_vector(), i_4_element.get_vector()))
                 self.connectAtoms(i_0_element, i_4_element, BaseEnums.CHIBSBond.physicalOperator)
@@ -215,6 +241,7 @@ class CIHBS:
             #print("\n")
 
 
+
     def checkForIons(self, group, Ion):
         if (Ion == BaseEnums.Atoms.donor):
             group = [i for i in group if i.get_name() not in BaseEnums.Groups.plusIONResidue.value.keys()
@@ -230,7 +257,6 @@ class CIHBS:
 
     def connectResidueCIHBS(self):
 
-        # чистим
         cleanedCIHBS = [i for i in self.innerCIHBS
                         if i.element != "C"
                         and i.get_name() != "N"]
@@ -258,4 +284,3 @@ class CIHBS:
                                       else BaseEnums.CHIBSBond.acceptorAcceptor)
 
             #print("\n")
-

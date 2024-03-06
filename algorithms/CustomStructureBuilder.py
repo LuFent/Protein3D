@@ -322,3 +322,6 @@ class CustomStructureBuilder:
 
     def set_symmetry(self, spacegroup, cell):
         """Set symmetry."""
+
+#-6.370  16.786 -20.482
+#-8.119  14.420 -20.301
