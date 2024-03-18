@@ -13,7 +13,7 @@ class NotDisordered(Select):
 
 
 class StructureVisualisation:
-    cihbsObj = CIHBS.CIHBS()
+    carbon_bond_type_number = 4
     PDBParser = PDBParser(QUIET=True)
     io = PDBIO()
 
@@ -21,6 +21,7 @@ class StructureVisualisation:
 
         structure = self.PDBParser.get_structure(structure_id, structure_file)
         self.structure = structure
+        self.cihbsObj = CIHBS.CIHBS()
 
         self.atoms_ids = [atom.get_serial_number() for atom in
                           Selection.unfold_entities(self.structure, 'A')]
@@ -76,7 +77,7 @@ class StructureVisualisation:
                             if previous_atom is None:
                                 previous_atom = atom.get_serial_number()
                             else:
-                                extra_bonds.append((previous_atom, atom.get_serial_number()))
+                                extra_bonds.append((previous_atom, atom.get_serial_number(), self.carbon_bond_type_number))
                                 previous_atom = atom.get_serial_number()
                 previous_atom = None
 
@@ -93,17 +94,10 @@ class StructureVisualisation:
         self.cihbsObj.connectResidueCIHBS()
 
         newCIHBS = self.cihbsObj.getNewCIHBS()
-        self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
+        self.extra_bonds = [[pair[0], pair[1], pair[2].value] for pair in newCIHBS]
         self.show_atoms = innerCIHBS
 
-        self.extra_bonds = [[pair[0], pair[1]] for pair in newCIHBS]
-        self.show_atoms = innerCIHBS
 
-        # physicalOperators = self.cihbsObj.connectPhysicalOperators()
-        # outerCIHBS = self.cihbsObj.connectResidueCIHBS()
-
-        # totalCIHBS = np.concatenate((physicalOperators, outerCIHBS), axis=0)
-        # print("totalCIHBS", totalCIHBS)
     def test_alg(self):
         self.flush_mask()
         atom_mask = self.cihbsObj.getPropertiesColoredAtoms(self.structure)
