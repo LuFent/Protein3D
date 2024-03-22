@@ -39,22 +39,28 @@ class CIHBS:
     # получить сложные ССИВС между аминокислотами
     def getNewCIHBS(self):
         if self.newCIHBS:
-            return self.newCIHBS
+            dictinary = {'Водородные': self.getR_O(),
+                         'Физические': self.getNH_O()}
+            return dictinary
         raise ValueError("Возвращается пустой объект.")
 
     # получение физических операторов между i и i-4 элементами пентофрагментов
-    def getNHi_Oi_4(self):
-        return [i for i in self.newCIHBS
-                if abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
-                and i[0].get_name() == 'N'
-                and i[1].get_name() == 'O']
+    def getNH_O(self):
+        return {'NH_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
+                            if
+                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
+                            and i[0].get_name() == 'N'
+                            and i[1].get_name() == 'O'],
+                'All': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS if i[2] == BaseEnums.CHIBSBond.physicalOperator]}
 
     # получение ССИВС между iм остатком и i-4 кислородом пентофрагментов
-    def getRi_Oi_4(self):
-        return [i for i in self.newCIHBS
-                if abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
-                and len(i[0].get_name()) >= 2
-                and i[1].get_name() == 'O']
+    def getR_O(self):
+        return {'Ri_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
+                            if
+                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
+                            and len(i[0].get_name()) >= 2
+                            and i[1].get_name() == 'O'],
+                'All': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS if i[2] != BaseEnums.CHIBSBond.physicalOperator]}
 
     # устанавливаем маску поиска по атомам
     def setNeighbourSearch(self, structure):
@@ -73,7 +79,7 @@ class CIHBS:
 
     # соединяем атомы
     def connectAtoms(self, atom1, atom2, bond):
-        self.newCIHBS.append([atom1.get_serial_number(), atom2.get_serial_number(), bond])
+        self.newCIHBS.append([atom1, atom2, bond])
 
     def checkInnerGroups(self, structure):
 
