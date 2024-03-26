@@ -39,8 +39,8 @@ class CIHBS:
     # получить сложные ССИВС между аминокислотами
     def getNewCIHBS(self):
         if self.newCIHBS:
-            dictinary = {'Водородные': self.getR_O(),
-                         'Физические': self.getNH_O()}
+            dictinary = {'Hydrogen': self.getR_O(),
+                         'Physics': self.getNH_O()}
             return dictinary
         raise ValueError("Возвращается пустой объект.")
 

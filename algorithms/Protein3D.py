@@ -78,7 +78,7 @@ class StructureVisualisation:
                 previous_atom = None
 
         self.show_atoms = show_ids
-        self.extra_bonds = extra_bonds
+        self.extra_bonds = {"alpa-carbon-bonds": extra_bonds}
 
     def getCIHBS(self):
         self.flush_mask()
