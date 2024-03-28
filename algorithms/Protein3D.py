@@ -1,11 +1,7 @@
 from .Arcitecture import CIHBS
 from .CustomPDBParser import PDBParser
-from Bio import PDB as pdb
-from Bio.PDB import Selection,PDBIO, Select
-import json
-
-from itertools import chain, count
-import numpy as np
+from Bio.PDB import Selection, PDBIO, Select
+import pprint
 
 class NotDisordered(Select):
     def accept_atom(self, atom):
@@ -82,7 +78,7 @@ class StructureVisualisation:
                 previous_atom = None
 
         self.show_atoms = show_ids
-        self.extra_bonds = extra_bonds
+        self.extra_bonds = {"alpa-carbon-bonds": extra_bonds}
 
     def getCIHBS(self):
         self.flush_mask()
@@ -94,7 +90,7 @@ class StructureVisualisation:
         self.cihbsObj.connectResidueCIHBS()
 
         newCIHBS = self.cihbsObj.getNewCIHBS()
-        self.extra_bonds = [[pair[0], pair[1], pair[2].value] for pair in newCIHBS]
+        self.extra_bonds = newCIHBS
         self.show_atoms = innerCIHBS
 
 
