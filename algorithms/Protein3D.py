@@ -78,7 +78,11 @@ class StructureVisualisation:
                 previous_atom = None
 
         self.show_atoms = show_ids
-        self.extra_bonds = {"alpa-carbon-bonds": extra_bonds}
+        self.hide_atoms = None
+        self.extra_bonds = {"alpha_carbon_skeleton":{
+                                    "alpha_carbon_skeleton": extra_bonds
+                                 }
+                            }
 
     def getCIHBS(self):
         self.flush_mask()
@@ -91,6 +95,7 @@ class StructureVisualisation:
 
         newCIHBS = self.cihbsObj.getNewCIHBS()
         self.extra_bonds = newCIHBS
+        self.hide_atoms = None
         self.show_atoms = innerCIHBS
 
 
