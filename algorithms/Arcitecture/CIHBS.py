@@ -226,6 +226,15 @@ class CIHBS:
         except ValueError:
             return None
 
+    def checkResidue(self, groupCIHBS, i_4_element, group_4_resname):
+        closest = self.findClosest(groupCIHBS, i_4_element)
+
+        if groupCIHBS and closest and math.dist(closest.get_vector(), i_4_element.get_vector()) <= 4 \
+                and group_4_resname not in BaseEnums.Groups.antiConnectors.value:
+            self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
+            if (i_4_element.element == closest.element)
+            else BaseEnums.CHIBSBond.acceptorAcceptor)
+
     # соединение атомов основной цепи при помощи физических операторов
     def connectPhysicalOperators(self):
         self.setNeighbourSearch(self.innerCIHBS)
@@ -234,6 +243,22 @@ class CIHBS:
         for i in range(4, len(self.alphaCarbonChain)):
             group_0 = self.alphaCarbonChain[i].get_parent()
             group_4 = self.alphaCarbonChain[i - 4].get_parent()
+            group_3 = self.alphaCarbonChain[i - 3].get_parent()
+
+            diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
+            print(diff, group_0, group_4)
+            # проверка на совпадения серийных номеров и возвращение к пентофрагменту
+            if diff != 4:
+                group_4 = self.alphaCarbonChain[i - 4 + (diff - 4)].get_parent()
+                group_3 = self.alphaCarbonChain[i - 3 + (diff - 3)].get_parent()
+                diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
+                print("New diff", diff)
+            if diff == 4:
+                pass
+            else:
+                continue
+
+            print("Checking resseq = ", group_0, group_4)
 
             # получаем внутренние ССИВС для i-го элемента
 
@@ -244,21 +269,25 @@ class CIHBS:
 
             i_0_element = getTargetElementInResidue(group_0, "N")
             i_4_element = getTargetElementInResidue(group_4, "O")
+            i_3_element = getTargetElementInResidue(group_3, "O")
 
             groupCIHBS = groupCIHBS[:groupCIHBS.index(i_0_element)]
 
-            # иначе соединяем 0 и 4
+            # соединяем 0 и 4
             if math.dist(i_4_element.get_coord(), i_0_element.get_coord()) <= 4:
+                print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
                 self.connectAtoms(i_0_element, i_4_element, BaseEnums.CHIBSBond.physicalOperator)
 
             # соединяем с остатком
-            closest = self.findClosest(groupCIHBS, i_4_element)
+            self.checkResidue(groupCIHBS, i_4_element, group_4.get_resname())
 
-            if groupCIHBS and closest and math.dist(closest.get_vector(), i_4_element.get_vector()) <= 4 \
-                    and group_4.get_resname() not in BaseEnums.Groups.antiConnectors.value:
-                self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
-                if (i_4_element.element == closest.element)
-                else BaseEnums.CHIBSBond.acceptorAcceptor)
+            # оцениваем четырехзвенный цикл для SER и THR
+            if group_0.get_resname() in list(BaseEnums.AcidGroups.weaklyPolar.value.values())[0]:
+                # грубо заменяем переменную
+                i_4_element = i_3_element
+
+                # соединяем с остатком i-3
+                self.checkResidue(groupCIHBS, i_4_element, group_4.get_resname())
 
     # удаляем из группы атомы-ионы
     def checkForIons(self, group, Ion):
