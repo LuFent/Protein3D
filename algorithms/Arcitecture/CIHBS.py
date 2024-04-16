@@ -188,19 +188,19 @@ class PhysicalOperators(BaseCIHBS):
             group_3 = self.alpha_carbon_chain[i - 3].get_parent()
 
             diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
-            print(diff, group_0, group_4)
+            #print(diff, group_0, group_4)
             # проверка на совпадения серийных номеров и возвращение к пентофрагменту
             if diff != 4:
                 group_4 = self.alpha_carbon_chain[i - 4 + (diff - 4)].get_parent()
                 group_3 = self.alpha_carbon_chain[i - 3 + (diff - 3)].get_parent()
                 diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
-                print("New diff", diff)
+               #print("New diff", diff)
             if diff == 4:
                 pass
             else:
                 continue
 
-            print("Checking resseq = ", group_0, group_4)
+            #print("Checking resseq = ", group_0, group_4)
 
             # получаем внутренние ССИВС для i-го элемента
 
@@ -217,7 +217,7 @@ class PhysicalOperators(BaseCIHBS):
 
             # соединяем 0 и 4
             if math.dist(i_4_element.get_coord(), i_0_element.get_coord()) <= 4:
-                print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
+                #print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
                 self.connectAtoms(i_0_element, i_4_element, BaseEnums.CHIBSBond.physicalOperator)
 
             # соединяем с остатком

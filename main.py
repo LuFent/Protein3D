@@ -1,12 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, session, abort, jsonify
+from flask import Flask, render_template, request, send_file, session, abort, jsonify
 import os
-import sys
 import atexit
 from flask_cors import CORS
 from tempfile import NamedTemporaryFile
 import secrets
-import shutil
-from Bio.PDB import Selection, PDBIO, Select
+
 from datetime import timedelta
 
 from algorithms.Protein3D import StructureVisualisation, NotDisordered
@@ -19,7 +17,7 @@ app.config['UPLOAD_FOLDER'] = 'pdb'
 app.config['ALLOWED_EXTENSIONS'] = {'pdb', 'pdb1'}
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
 app.config['TEMPFILE_DIR'] = "tempfiles"
-app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+#app.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
 STRUCTURES_STORE = {}
 TEMP_FILES = set()
 
