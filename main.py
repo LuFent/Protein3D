@@ -122,7 +122,12 @@ def exec_algorithm():
         return jsonify({'error': 'Request data is not JSON'}), 400
 
     structure = STRUCTURES_STORE[session["sid"]]
-    mask = structure.execute_algorithm(alg)
+    
+    try:
+        mask = structure.execute_algorithm(alg)
+    except Exception:
+        return jsonify({'error': 'Something went wrong'}), 400
+
     if mask is None:
         return jsonify({'error': f'No such algorithm {alg}'}), 400
     return jsonify(mask), 200
