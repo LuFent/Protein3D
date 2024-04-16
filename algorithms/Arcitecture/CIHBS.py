@@ -5,121 +5,45 @@ from Bio.PDB import Selection, NeighborSearch
 from . import BaseEnums
 
 
-class CIHBS:
+class BaseCIHBS:
     def __init__(self):
-        self.newCIHBS = []
+        self.new_cihbs = []
 
     def setParameters(self, structure):
-        self.alphaCarbonChain = [atom for atom in Selection.unfold_entities(structure, 'A')
-                                 if atom.get_name() == "CA"]
-        self.mainChain = [atom for atom in Selection.unfold_entities(structure, 'A')
-                          if ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
-                              and atom.get_parent().get_resname() != "HOH")]
-        self.mainChainDict = {atom.get_parent(): atom.get_name() for atom in Selection.unfold_entities(structure, 'A')
+        self.alpha_carbon_chain = [atom for atom in Selection.unfold_entities(structure, 'A')
+                                   if atom.get_name() == "CA"]
+        """self.main_chain_dict = {atom.get_parent(): atom.get_name() for atom in Selection.unfold_entities(structure, 'A')
                               if ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
-                                  and atom.get_parent().get_resname() != "HOH")}
+                                  and atom.get_parent().get_resname() != "HOH")}"""
 
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
-        self.nsStructure = NeighborSearch(Selection.unfold_entities(structure, 'A'))
+        self.setMainChain(structure)
+
+    def getNewCIHBS(self):
+        return self.new_cihbs
+
+    def setMainChain(self, structure):
+        self.main_chain = [atom for atom in Selection.unfold_entities(structure, 'A')
+                           if ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
+                               and atom.get_parent().get_resname() != "HOH")]
+
+    # получить номера атомов основной цепи
+    def getMainChain_serial_number(self):
+        return [i.get_serial_number() for i in self.main_chain]
 
     # получить атомы основной цепи
     def getMainChain(self):
-        return [i.get_serial_number() for i in self.mainChain]
+        return self.main_chain
 
     # получить альфауглерод
     def getCarbonChain(self):
-        return self.alphaCarbonChain
+        return self.alpha_carbon_chain
 
-    # получить номера атомов простых ССИВС
-    def getInnerCIHBS(self):
-        if self.innerCIHBS:
-            return [atom.get_serial_number() for atom in self.innerCIHBS]
-        raise ValueError("Возвращается пустой объект.")
-
-    # получить сложные ССИВС между аминокислотами
-    def getNewCIHBS(self):
-        if self.newCIHBS:
-            dictinary = {'Hydrogen': {**self.getR_O(), **self.getR_R(), **self.getOthers()},
-                         'Physics': self.getNH_O()}
-            return dictinary
-        raise ValueError("Возвращается пустой объект.")
-
-    # получение физических операторов между i и i-n элементами пентофрагментов
-    def getNH_O(self):
-        return {'NH_Oi_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
-                            and i[0].get_name() == 'N'
-                            and i[1].get_name() == 'O'],
-                'NH_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
-                            and i[0].get_name() == 'N'
-                            and i[1].get_name() == 'O'],
-                'NH_Oi_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
-                            and i[0].get_name() == 'N'
-                            and i[1].get_name() == 'O'],
-                'NH_Oi_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
-                            and i[0].get_name() == 'N'
-                            and i[1].get_name() == 'O']}
-
-    # получение ССИВС между iм остатком и i-n кислородом пентофрагментов
-    def getR_O(self):
-        return {'Ri_Oi_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
-                            and len(i[0].get_name()) >= 2
-                            and i[1].get_name() == 'O'],
-                'Ri_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
-                            and len(i[0].get_name()) >= 2
-                            and i[1].get_name() == 'O'],
-                'Ri_Oi_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
-                            and len(i[0].get_name()) >= 2
-                            and i[1].get_name() == 'O'],
-                'Ri_Oi_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
-                            and len(i[0].get_name()) >= 2
-                            and i[1].get_name() == 'O']}
-
-    # получение ССИВС между iм остатком и i-n остатком
-    def getR_R(self):
-        return {'Ri_Ri_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
-                            and len(i[0].get_name()) >= 2
-                            and len(i[1].get_name()) >= 2],
-                'Ri_Ri_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
-                            and len(i[0].get_name()) >= 2
-                            and len(i[1].get_name()) >= 2],
-                'Ri_Ri_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
-                            and len(i[0].get_name()) >= 2
-                            and len(i[1].get_name()) >= 2],
-                'Ri_Ri_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                            if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
-                            and len(i[0].get_name()) >= 2
-                            and len(i[1].get_name()) >= 2]}
-
-    # получение остальных ССИВС
-    def getOthers(self):
-        return {'Others': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.newCIHBS
-                           if
-                           i[2] != BaseEnums.CHIBSBond.physicalOperator
-                           and ((len(i[0].get_name()) >= 2 and i[1].get_name() != 'O')
-                                or (len(i[0].get_name()) == 1 and len(i[1].get_name()) >= 2))]}
+    # получаем номер аминокислоты
+    @staticmethod
+    def getResseq(residue):
+        resseq = [st.split('=') for st in str(residue).split(' ')]
+        return resseq[4][1]
 
     # устанавливаем маску поиска по атомам
     def setNeighbourSearch(self, structure):
@@ -138,11 +62,29 @@ class CIHBS:
 
     # соединяем атомы
     def connectAtoms(self, atom1, atom2, bond):
-        self.newCIHBS.append([atom1, atom2, bond])
+        self.new_cihbs.append([atom1, atom2, bond])
 
-    def checkInnerGroups(self, structure):
 
-        cihbsList = []
+class InnerCIHBS(BaseCIHBS):
+    def __init__(self):
+        super().__init__()
+        self.inner_cihbs_dict = {}
+
+    # получить номера атомов простых ССИВС
+    def getInnerCIHBS_serial_number(self):
+        return [atom.get_serial_number() for atom in self.inner_cihbs]
+
+    # получить номера атомов простых ССИВС
+    def getInnerCIHBS(self):
+        return self.inner_cihbs
+
+    # получить словарь простых ССИВС
+    def getInnerCIHBSDict(self):
+        return self.inner_cihbs_dict
+
+    def checkInnerGroups(self, structure, main_chain):
+
+        cihbs_list = []
         for residue in structure.get_residues():
             if residue.get_resname() != "HOH":
 
@@ -159,7 +101,7 @@ class CIHBS:
                         pass
 
                     del atoms_name
-                    cihbsList.append(cycle)
+                    cihbs_list.append(cycle)
 
                 try:
                     self.setNeighbourSearch(residue)
@@ -171,7 +113,7 @@ class CIHBS:
                                 [element.get_name() for element in residue.get_atoms()].index(atom)]
                             neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
 
-                            cihbsList.append(neighbour)
+                            cihbs_list.append(neighbour)
                         except ValueError:
                             pass
 
@@ -184,38 +126,38 @@ class CIHBS:
                             neighbour = self.findTargetNeigbour(atom_obj, 2.0, BaseEnums.Atoms.allAtomsElements.value)
                             neighbour = neighbour[[element.get_name() for element in neighbour].index(atom):]
 
-                            cihbsList.append(neighbour)
+                            cihbs_list.append(neighbour)
                         except ValueError:
                             pass
                 except IndexError:
                     pass
 
         # добавляем триплеты NCO из основной цепи
-        tmp = [i for i in self.mainChain if (i.get_name() != "CA")]
-        cihbsList.append(tmp)
+        tmp = [i for i in main_chain if (i.get_name() != "CA")]
+        cihbs_list.append(tmp)
 
         # созраняем в словарь для удобной и быстрой работы алгоритма
-        cihbsList = sum(cihbsList, [])
-        cihbsDict = {}
-        for i in cihbsList:
-            if i.get_parent() in cihbsDict.keys():
-                tmp_list = cihbsDict.get(i.get_parent())
+        self.inner_cihbs = sum(cihbs_list, [])
+        for i in self.inner_cihbs:
+            if i.get_parent() in self.inner_cihbs_dict.keys():
+                tmp_list = self.inner_cihbs_dict.get(i.get_parent())
                 tmp_list.append(i)
-                cihbsDict.update({i.get_parent(): tmp_list})
+                self.inner_cihbs_dict.update({i.get_parent(): tmp_list})
                 del tmp_list
             else:
-                cihbsDict[i.get_parent()] = [i]
+                self.inner_cihbs_dict[i.get_parent()] = [i]
 
-        self.innerCIHBSDict = cihbsDict
-        self.innerCIHBS = cihbsList
 
-    # получаем номер аминокислоты
-    def getResseq(self, residue):
-        resseq = [st.split('=') for st in str(residue).split(' ')]
-        return resseq[4][1]
+class PhysicalOperators(BaseCIHBS):
+    def __init__(self):
+        super().__init__()
 
+    def setParameters(self, args):
+        self.inner_cihbs_dict, self.inner_cihbs, self.alpha_carbon_chain = args
+
+    @staticmethod
     # посик ближайших атомов в ССИВС
-    def findClosest(self, atoms, target):
+    def findClosest(atoms, target):
         atoms = [i for i in atoms if (i.element != "C"
                                       and i.get_parent() not in BaseEnums.Groups.doubleBondAcid.value.keys()
                                       and i.get_name() not in BaseEnums.Groups.doubleBondAcid.value.values()
@@ -226,43 +168,81 @@ class CIHBS:
         except ValueError:
             return None
 
+    def checkResidue(self, group_cihbs, i_4_element, group_4_resname):
+        closest = self.findClosest(group_cihbs, i_4_element)
+
+        if group_cihbs and closest and math.dist(closest.get_vector(), i_4_element.get_vector()) <= 4 \
+                and group_4_resname not in BaseEnums.Groups.antiConnectors.value:
+            self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
+            if (i_4_element.element == closest.element)
+            else BaseEnums.CHIBSBond.acceptorAcceptor)
+
     # соединение атомов основной цепи при помощи физических операторов
     def connectPhysicalOperators(self):
-        self.setNeighbourSearch(self.innerCIHBS)
+        self.setNeighbourSearch(self.inner_cihbs)
 
         # получаем пентофрагмент
-        for i in range(4, len(self.alphaCarbonChain)):
-            group_0 = self.alphaCarbonChain[i].get_parent()
-            group_4 = self.alphaCarbonChain[i - 4].get_parent()
+        for i in range(4, len(self.alpha_carbon_chain)):
+            group_0 = self.alpha_carbon_chain[i].get_parent()
+            group_4 = self.alpha_carbon_chain[i - 4].get_parent()
+            group_3 = self.alpha_carbon_chain[i - 3].get_parent()
+
+            diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
+            print(diff, group_0, group_4)
+            # проверка на совпадения серийных номеров и возвращение к пентофрагменту
+            if diff != 4:
+                group_4 = self.alpha_carbon_chain[i - 4 + (diff - 4)].get_parent()
+                group_3 = self.alpha_carbon_chain[i - 3 + (diff - 3)].get_parent()
+                diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
+                print("New diff", diff)
+            if diff == 4:
+                pass
+            else:
+                continue
+
+            print("Checking resseq = ", group_0, group_4)
 
             # получаем внутренние ССИВС для i-го элемента
 
-            groupCIHBS = self.innerCIHBSDict.get(group_0)
+            group_cihbs = self.inner_cihbs_dict.get(group_0)
 
             def getTargetElementInResidue(group, target):
                 return list(group.get_atoms())[list(i.get_name() for i in group.get_atoms()).index(target)]
 
             i_0_element = getTargetElementInResidue(group_0, "N")
             i_4_element = getTargetElementInResidue(group_4, "O")
+            i_3_element = getTargetElementInResidue(group_3, "O")
 
-            groupCIHBS = groupCIHBS[:groupCIHBS.index(i_0_element)]
+            group_cihbs = group_cihbs[:group_cihbs.index(i_0_element)]
 
-            # иначе соединяем 0 и 4
+            # соединяем 0 и 4
             if math.dist(i_4_element.get_coord(), i_0_element.get_coord()) <= 4:
+                print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
                 self.connectAtoms(i_0_element, i_4_element, BaseEnums.CHIBSBond.physicalOperator)
 
             # соединяем с остатком
-            closest = self.findClosest(groupCIHBS, i_4_element)
+            self.checkResidue(group_cihbs, i_4_element, group_4.get_resname())
 
-            if groupCIHBS and closest and math.dist(closest.get_vector(), i_4_element.get_vector()) <= 4 \
-                    and group_4.get_resname() not in BaseEnums.Groups.antiConnectors.value:
-                self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
-                if (i_4_element.element == closest.element)
-                else BaseEnums.CHIBSBond.acceptorAcceptor)
+            # оцениваем четырехзвенный цикл для SER и THR
+            if group_0.get_resname() in list(BaseEnums.AcidGroups.weaklyPolar.value.values())[0]:
+                # грубо заменяем переменную
+                i_4_element = i_3_element
 
+                # соединяем с остатком i-3
+                self.checkResidue(group_cihbs, i_4_element, group_4.get_resname())
+
+
+class OuterCIHBS(BaseCIHBS):
+    def __init__(self):
+        super().__init__()
+
+    def setParameters(self, inner_cihbs):
+        self.inner_cihbs = inner_cihbs
+
+    @staticmethod
     # удаляем из группы атомы-ионы
-    def checkForIons(self, group, Ion):
-        if (Ion == BaseEnums.Atoms.donor):
+    def checkForIons(group, ion):
+        if ion == BaseEnums.Atoms.donor:
             group = [i for i in group if i.get_name() not in BaseEnums.Groups.plusIONResidue.value.keys()
                      and i.get_parent() not in BaseEnums.Groups.plusIONResidue.value.values()]
         else:
@@ -277,12 +257,12 @@ class CIHBS:
     # соединение ССИВС между аминокислотами
     def connectResidueCIHBS(self):
 
-        cleanedCIHBS = [i for i in self.innerCIHBS
-                        if i.element != "C"
-                        and i.get_name() != "N"]
+        cleaned_cihbs = [i for i in self.inner_cihbs
+                         if i.element != "C"
+                         and i.get_name() != "N"]
 
-        self.setNeighbourSearch(cleanedCIHBS)
-        for elem in cleanedCIHBS:
+        self.setNeighbourSearch(cleaned_cihbs)
+        for elem in cleaned_cihbs:
 
             neighbours = self.findTargetNeigbourExept(elem, 3.7, ["N", "O", "S"])
 
@@ -293,7 +273,7 @@ class CIHBS:
             # проверяем на ретроспективность ССИВС
             neighbours = self.checkRetrospective(self.getResseq(elem.get_parent()), neighbours)
 
-            if (neighbours != []):
+            if neighbours != []:
                 for neighbour in neighbours:
                     self.connectAtoms(neighbour, elem,
                                       BaseEnums.CHIBSBond.acceptorAcceptor

@@ -1,4 +1,4 @@
-from .Arcitecture import CIHBS
+from .Arcitecture import CIHBS, CIHBS_selector
 from .CustomPDBParser import PDBParser
 from Bio.PDB import Selection, PDBIO, Select
 import pprint
@@ -15,17 +15,18 @@ class StructureVisualisation:
 
     def __init__(self, structure_id, structure_file):
 
-        structure = self.PDBParser.get_structure(structure_id, structure_file)
-        self.structure = structure
-        self.cihbsObj = CIHBS.CIHBS()
+        self.structure = self.PDBParser.get_structure(structure_id, structure_file)
+
+        self.cihbs_obj = CIHBS.BaseCIHBS()
+        self.inner_cihbs_obj = CIHBS.InnerCIHBS()
+        self.outer_cihbs_obj = CIHBS.OuterCIHBS()
+        self.physical_cihbs_obj = CIHBS.PhysicalOperators()
+        self.cihbs_selector_obj = CIHBS_selector.SelectorCIHBS()
+
+        self.cihbs_obj.setParameters(structure=self.structure)
 
         self.atoms_ids = [atom.get_serial_number() for atom in
                           Selection.unfold_entities(self.structure, 'A')]
-
-        self.cihbsObj.setParameters(structure=structure)
-
-        #for atom in structure.get_atoms():
-        #    print(f"{atom.get_serial_number()} {atom.get_name()}")
 
         self.extra_bonds = []
         self.hide_atoms = []
@@ -34,6 +35,7 @@ class StructureVisualisation:
     @classmethod
     def get_structure(cls, structure_id, structure_file):
         return cls.PDBParser.get_structure(structure_id, structure_file)
+
     @classmethod
     def clean_file(cls, structure, file):
         cls.io.set_structure(structure)
@@ -73,36 +75,42 @@ class StructureVisualisation:
                             if previous_atom is None:
                                 previous_atom = atom.get_serial_number()
                             else:
-                                extra_bonds.append((previous_atom, atom.get_serial_number(), self.carbon_bond_type_number))
+                                extra_bonds.append(
+                                    (previous_atom, atom.get_serial_number(), self.carbon_bond_type_number))
                                 previous_atom = atom.get_serial_number()
                 previous_atom = None
 
         self.show_atoms = show_ids
         self.hide_atoms = None
-        self.extra_bonds = {"alpha_carbon_skeleton":{
-                                    "alpha_carbon_skeleton": extra_bonds
-                                 }
-                            }
+        self.extra_bonds = {"alpha_carbon_skeleton": {
+            "alpha_carbon_skeleton": extra_bonds
+        }
+        }
 
     def getCIHBS(self):
         self.flush_mask()
 
-        self.cihbsObj.checkInnerGroups(self.structure)
-        innerCIHBS = self.cihbsObj.getInnerCIHBS()
+        self.inner_cihbs_obj.checkInnerGroups(self.structure, self.cihbs_obj.getMainChain())
 
-        self.cihbsObj.connectPhysicalOperators()
-        self.cihbsObj.connectResidueCIHBS()
+        self.physical_cihbs_obj.setParameters(args=(self.inner_cihbs_obj.getInnerCIHBSDict(),
+                                                    self.inner_cihbs_obj.getInnerCIHBS(),
+                                                    self.cihbs_obj.getCarbonChain()))
+        self.physical_cihbs_obj.connectPhysicalOperators()
+        new_cihbs = self.physical_cihbs_obj.getNewCIHBS()
 
-        newCIHBS = self.cihbsObj.getNewCIHBS()
-        self.extra_bonds = newCIHBS
+        self.outer_cihbs_obj.setParameters(self.inner_cihbs_obj.getInnerCIHBS())
+        self.outer_cihbs_obj.connectResidueCIHBS()
+        new_cihbs.extend(self.outer_cihbs_obj.getNewCIHBS())
+
+        self.cihbs_selector_obj.setParameters(new_cihbs)
+        self.extra_bonds = self.cihbs_selector_obj.get_selector_map()
         self.hide_atoms = None
-        self.show_atoms = innerCIHBS
-
+        self.show_atoms = self.inner_cihbs_obj.getInnerCIHBS_serial_number()
 
     def test_alg(self):
-        self.flush_mask()
-        atom_mask = self.cihbsObj.getPropertiesColoredAtoms(self.structure)
-
+        """self.flush_mask()
+        atom_mask = self.cihbsObj.getPropertiesColoredAtoms(self.structure)"""
+        pass
 
     def execute_algorithm(self, alg):
         if alg == "alpha_carbon_skeleton":
