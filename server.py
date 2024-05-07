@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from flask import Flask, render_template, request, send_file, session, abort, jsonify, send_from_directory
-=======
-from flask import Flask, render_template, request, send_file, session, abort, jsonify
->>>>>>> origin/algorithms
 import os
 import atexit
 from flask_cors import CORS
@@ -43,10 +39,6 @@ def clean_tempfiles_dir():
             os.remove(file_path)
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/algorithms
 @server.route("/")
 def index():
     return render_template("index.html")
@@ -84,11 +76,7 @@ def upload_structure():
         abort(400)
 
     file = request.files['file']
-<<<<<<< HEAD
     filename = file.filename
-=======
-
->>>>>>> origin/algorithms
     if not file:
         abort(400)
 
@@ -104,23 +92,16 @@ def upload_structure():
     temp_file.write(file.read().decode('utf-8'))
     temp_file.seek(0)
     structure = StructureVisualisation.get_structure(session_id, temp_file)
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/algorithms
     temp_file.close()
     cleaned_temp_file = NamedTemporaryFile(delete=False, mode='w+', dir=server.config['TEMPFILE_DIR'])
     StructureVisualisation.clean_file(structure, cleaned_temp_file)
     cleaned_temp_file.seek(0)
-<<<<<<< HEAD
     cleaned_structure = StructureVisualisation(session_id,
                                                cleaned_temp_file,
                                                server.config["ALGORITHMS"].copy(),
                                                filename)
 
-=======
-    cleaned_structure = StructureVisualisation(session_id, cleaned_temp_file, server.config["ALGORITHMS"].copy())
->>>>>>> origin/algorithms
     STRUCTURES_STORE[session_id] = cleaned_structure
     response = send_file(cleaned_temp_file.name, as_attachment=True)
     response.headers["Content-Disposition"] = os.path.basename(cleaned_temp_file.name)
@@ -144,10 +125,10 @@ def exec_algorithm():
 
     structure = STRUCTURES_STORE[session["sid"]]
 
-    #try:
-    mask = structure.execute_algorithm(alg).serialize()
-    #except Exception:
-    #    return jsonify({'error': 'Something went wrong'}), 400
+    try:
+        mask = structure.execute_algorithm(alg).serialize()
+    except Exception:
+        return jsonify({'error': 'Something went wrong'}), 400
 
     return jsonify(mask), 200
 
