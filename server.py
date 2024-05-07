@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, session, abort, jsonify
+from flask import Flask, render_template, request, send_file, session, abort, jsonify, send_from_directory
 import os
 import atexit
 from flask_cors import CORS
@@ -20,6 +20,7 @@ def requires_structure(func):
     def wrserverer(*args, **kwargs):
         if 'sid' not in session:
             return jsonify({'error': 'Session does not have the structure'}), 400
+        print(STRUCTURES_STORE[session.get("sid")])
         return func(*args, **kwargs)
 
     wrserverer.__name__ = func.__name__
@@ -37,6 +38,7 @@ def clean_tempfiles_dir():
         file_path = os.path.join(directory, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+
 
 
 @server.route("/")
@@ -76,7 +78,7 @@ def upload_structure():
         abort(400)
 
     file = request.files['file']
-
+    filename = file.filename
     if not file:
         abort(400)
 
@@ -92,11 +94,16 @@ def upload_structure():
     temp_file.write(file.read().decode('utf-8'))
     temp_file.seek(0)
     structure = StructureVisualisation.get_structure(session_id, temp_file)
+
     temp_file.close()
     cleaned_temp_file = NamedTemporaryFile(delete=False, mode='w+', dir=server.config['TEMPFILE_DIR'])
     StructureVisualisation.clean_file(structure, cleaned_temp_file)
     cleaned_temp_file.seek(0)
-    cleaned_structure = StructureVisualisation(session_id, cleaned_temp_file, server.config["ALGORITHMS"].copy())
+    cleaned_structure = StructureVisualisation(session_id,
+                                               cleaned_temp_file,
+                                               server.config["ALGORITHMS"].copy(),
+                                               filename)
+
     STRUCTURES_STORE[session_id] = cleaned_structure
     response = send_file(cleaned_temp_file.name, as_attachment=True)
     response.headers["Content-Disposition"] = os.path.basename(cleaned_temp_file.name)

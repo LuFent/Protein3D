@@ -7,6 +7,7 @@ from algorithms.Arcitecture import CIHBS, CIHBS_selector
 class AlphaCarbonChainAlgorithm(Algorithm):
     code_name = "alpha_carbon_skeleton"
     label = "Alpha-Carbon Skeleton"
+    icon = "AlphaCarbonAlgorithmLogo.svg"
 
 
     def _execute(self, structure) -> Mask:
@@ -48,8 +49,13 @@ class AlphaCarbonChainAlgorithm(Algorithm):
 class CIHBSAlgorithm(Algorithm):
     code_name = "CIHBS"
     label = "Ion-Hydrogen Bonds System"
+    icon = "CIHBSAlgorithmLogo.svg"
 
     def __init__(self):
+        pass
+
+
+    def set_cihbs(self):
         self.cihbs_obj = CIHBS.BaseCIHBS()
         self.inner_cihbs_obj = CIHBS.InnerCIHBS()
         self.outer_cihbs_obj = CIHBS.OuterCIHBS()
@@ -58,6 +64,7 @@ class CIHBSAlgorithm(Algorithm):
 
 
     def _execute(self, structure) -> Mask:
+        self.set_cihbs()
         mask = Mask()
         self.cihbs_obj.setParameters(structure=structure)
         self.inner_cihbs_obj.checkInnerGroups(structure, self.cihbs_obj.getMainChain())

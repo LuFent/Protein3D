@@ -39,8 +39,8 @@ class AlgorithmsStorage:
     def get_all_algorithms(self):
         algs = dict()
         for code_name, alg in self.algs.items():
-            algs[code_name] = {"label": alg.label}
-
+            algs[code_name] = {"label": alg.label,
+                               "icon": alg.icon}
         return algs
 
     def copy(self):
