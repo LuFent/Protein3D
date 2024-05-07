@@ -43,6 +43,7 @@ class AlgorithmsStorage:
                                "icon": alg.icon}
         return algs
 
+
     def copy(self):
         algorithm_storage = AlgorithmsStorage()
         algorithm_storage.labels = self.labels

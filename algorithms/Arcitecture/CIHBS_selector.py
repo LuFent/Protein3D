@@ -21,22 +21,22 @@ class SelectorCIHBS(BaseCIHBS):
     def getNH_O(self):
         return {'NH_Oi_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 3
                             and i[0].get_name() == 'N'
                             and i[1].get_name() == 'O'],
                 'NH_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 4
                             and i[0].get_name() == 'N'
                             and i[1].get_name() == 'O'],
                 'NH_Oi_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 5
                             and i[0].get_name() == 'N'
                             and i[1].get_name() == 'O'],
                 'NH_Oi_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 6
                             and i[0].get_name() == 'N'
                             and i[1].get_name() == 'O']}
 
@@ -44,22 +44,22 @@ class SelectorCIHBS(BaseCIHBS):
     def getR_O(self):
         return {'Ri_Oi_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
+                            abs(int(i[0].get_parent().get_id()[1])) - int(i[1].get_parent().get_id()[1]) == 3
                             and len(i[0].get_name()) >= 2
                             and i[1].get_name() == 'O'],
                 'Ri_Oi_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 4
                             and len(i[0].get_name()) >= 2
                             and i[1].get_name() == 'O'],
                 'Ri_Oi_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 5
                             and len(i[0].get_name()) >= 2
                             and i[1].get_name() == 'O'],
                 'Ri_Oi_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 6
                             and len(i[0].get_name()) >= 2
                             and i[1].get_name() == 'O']}
 
@@ -67,22 +67,22 @@ class SelectorCIHBS(BaseCIHBS):
     def getR_R(self):
         return {'Ri_Ri_3': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 3
+                            abs(int(i[0].get_parent().get_id()[1])) - int(i[1].get_parent().get_id()[1]) == 3
                             and len(i[0].get_name()) >= 2
                             and len(i[1].get_name()) >= 2],
                 'Ri_Ri_4': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 4
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 4
                             and len(i[0].get_name()) >= 2
                             and len(i[1].get_name()) >= 2],
                 'Ri_Ri_5': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 5
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 5
                             and len(i[0].get_name()) >= 2
                             and len(i[1].get_name()) >= 2],
                 'Ri_Ri_6': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2].value] for i in self.new_cihbs
                             if
-                            abs(int(self.getResseq(i[0].get_parent())) - int(self.getResseq(i[1].get_parent()))) == 6
+                            abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == 6
                             and len(i[0].get_name()) >= 2
                             and len(i[1].get_name()) >= 2]}
 

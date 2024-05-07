@@ -39,11 +39,6 @@ class BaseCIHBS:
     def getCarbonChain(self):
         return self.alpha_carbon_chain
 
-    # получаем номер аминокислоты
-    @staticmethod
-    def getResseq(residue):
-        resseq = [st.split('=') for st in str(residue).split(' ')]
-        return resseq[4][1]
 
     # устанавливаем маску поиска по атомам
     def setNeighbourSearch(self, structure):
@@ -187,13 +182,18 @@ class PhysicalOperators(BaseCIHBS):
             group_4 = self.alpha_carbon_chain[i - 4].get_parent()
             group_3 = self.alpha_carbon_chain[i - 3].get_parent()
 
-            diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
-            #print(diff, group_0, group_4)
+            #проверка на наличие аминокислот в пентофрагменте
+            if group_0.get_resname() not in BaseEnums.Groups.all_amino_acid_list.value or \
+                group_4.get_resname() not in BaseEnums.Groups.all_amino_acid_list.value:
+                continue
+
+            diff = int(group_0.get_id()[1]) - int(group_4.get_id()[1])
+            #print("for i = ", i, diff, group_0, group_4)
             # проверка на совпадения серийных номеров и возвращение к пентофрагменту
             if diff != 4:
                 group_4 = self.alpha_carbon_chain[i - 4 + (diff - 4)].get_parent()
                 group_3 = self.alpha_carbon_chain[i - 3 + (diff - 3)].get_parent()
-                diff = int(self.getResseq(group_0)) - int(self.getResseq(group_4))
+                diff = int(group_0.get_id()[1]) - int(group_4.get_id()[1])
                #print("New diff", diff)
             if diff == 4:
                 pass
@@ -252,7 +252,7 @@ class OuterCIHBS(BaseCIHBS):
 
     # проверяем связь на условие ретроспективности
     def checkRetrospective(self, residue_resseq, neighbours):
-        return [i for i in neighbours if int(self.getResseq(i.get_parent())) < int(residue_resseq)]
+        return [i for i in neighbours if int(i.get_parent().get_id()[1]) < int(residue_resseq)]
 
     # соединение ССИВС между аминокислотами
     def connectResidueCIHBS(self):
@@ -271,7 +271,7 @@ class OuterCIHBS(BaseCIHBS):
             if (elem.element == BaseEnums.Atoms.donor.value) else BaseEnums.Atoms.acceptor)
 
             # проверяем на ретроспективность ССИВС
-            neighbours = self.checkRetrospective(self.getResseq(elem.get_parent()), neighbours)
+            neighbours = self.checkRetrospective(elem.get_parent().get_id()[1], neighbours)
 
             if neighbours != []:
                 for neighbour in neighbours:

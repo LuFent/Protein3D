@@ -14,14 +14,14 @@ class StructureVisualisation:
     PDBParser = PDBParser(QUIET=True)
     io = PDBIO()
 
-    def __init__(self, structure_id, structure_file, algorithms_storage, filename):
 
-        self.structure = self.PDBParser.get_structure(structure_id, structure_file)
-        self.mask = Mask()
-        self.algorithms_storage = algorithms_storage
-        self.filename = filename
-        self.atoms_ids = [atom.get_serial_number() for atom in
-                          Selection.unfold_entities(self.structure, 'A')]
+def __init__(self, structure_id, structure_file, algorithms_storage, filename):
+    self.structure = self.PDBParser.get_structure(structure_id, structure_file)
+    self.mask = Mask()
+    self.algorithms_storage = algorithms_storage
+    self.filename = filename
+    self.atoms_ids = [atom.get_serial_number() for atom in
+                      Selection.unfold_entities(self.structure, 'A')]
 
 
     @classmethod

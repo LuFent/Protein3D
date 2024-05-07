@@ -22,6 +22,9 @@ class Atoms(Enum):
     acceptor = ["O", "S"]
 
 class Groups(Enum):
+    all_amino_acid_list = ["ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET",
+                           "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL"]
+
     sycleResidues = ["PRO", "TYR", "HIS", "TRP"]
     singleResidues = {"LYS": "NZ", "SER": "OG", "CYS": "SG", "MET": "SD", "THR": "OG1"}
     complexResidues = {"ARG": "CZ", "ASN": "CG", "GLN": "CD", "ASP": "CG", "GLU": "CD"}

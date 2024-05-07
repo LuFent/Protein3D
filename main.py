@@ -9,7 +9,6 @@ class AlphaCarbonChainAlgorithm(Algorithm):
     label = "Alpha-Carbon Skeleton"
     icon = "AlphaCarbonAlgorithmLogo.svg"
 
-
     def _execute(self, structure) -> Mask:
         carbon_bond_type_number = 4
         mask = Mask()
