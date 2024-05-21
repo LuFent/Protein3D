@@ -6,12 +6,12 @@ from tempfile import NamedTemporaryFile
 import secrets
 from algorithms.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
-
+import logging
 from algorithms.StructureVisualisation import StructureVisualisation, NotDisordered
 
 
 server = Flask(__name__)
-
+logging.basicConfig(level=logging.INFO)
 STRUCTURES_STORE = {}
 TEMP_FILES = set()
 
@@ -37,6 +37,23 @@ def clean_tempfiles_dir():
         file_path = os.path.join(directory, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+
+
+
+
+@server.after_request
+def log_response_size(response):
+    try:
+        # Get the response size
+        response_size = len(response.get_data())
+
+        # Log the response size
+        server.logger.info("Response size: %s bytes", response_size)
+    except RuntimeError as e:
+        # Handle direct passthrough mode
+        server.logger.warning("Response size cannot be determined: %s", e)
+
+    return response
 
 
 @server.route("/")
@@ -138,6 +155,9 @@ def run_server(*algs):
     for alg in algs:
         algorithm_storage.add_algorithm(alg())
     server.config["ALGORITHMS"] = algorithm_storage
+    server.config['SESSION_COOKIE_SAMESITE'] = 'None'
+    server.config['SESSION_COOKIE_SECURE'] = False
+    server.config['SESSION_COOKIE_HTTPONLY'] = False
     server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
     atexit.register(clean_tempfiles_dir)
     CORS(server, supports_credentials=True, expose_headers='Content-Disposition')
@@ -147,4 +167,4 @@ def run_server(*algs):
     server.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
     server.config['TEMPFILE_DIR'] = "tempfiles"
     os.makedirs(server.config['TEMPFILE_DIR'], exist_ok=True)
-    server.run(host="localhost", port=8000)
+    server.run(host="localhost", port=8000, debug=True)
