@@ -4,17 +4,33 @@ import atexit
 from flask_cors import CORS
 from tempfile import NamedTemporaryFile
 import secrets
-from algorithms.Algorithm import Algorithm, AlgorithmsStorage
+from .Algorithm.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
-import logging
-from algorithms.StructureVisualisation import StructureVisualisation, NotDisordered
+from .Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
 
 
 server = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
+PORT = 8000
 STRUCTURES_STORE = {}
 TEMP_FILES = set()
 
+
+def get_structure_visualisation(file, session_id, filename):
+    temp_file = NamedTemporaryFile(delete=True, mode='w+', dir=server.config['TEMPFILE_DIR'])
+    temp_file.write(file.read().decode('utf-8'))
+    temp_file.seek(0)
+    structure = StructureVisualisation.get_structure(session_id, temp_file)
+
+    temp_file.close()
+    cleaned_temp_file = NamedTemporaryFile(delete=False, mode='w+', dir=server.config['TEMPFILE_DIR'])
+    StructureVisualisation.clean_file(structure, cleaned_temp_file)
+    cleaned_temp_file.seek(0)
+    cleaned_structure = StructureVisualisation(session_id,
+                                               cleaned_temp_file,
+                                               server.config["ALGORITHMS"].copy(),
+                                               filename)
+
+    return cleaned_structure, cleaned_temp_file
 
 def requires_structure(func):
     def wrserverer(*args, **kwargs):
@@ -39,28 +55,13 @@ def clean_tempfiles_dir():
             os.remove(file_path)
 
 
-
-
-@server.after_request
-def log_response_size(response):
-    try:
-        # Get the response size
-        response_size = len(response.get_data())
-
-        # Log the response size
-        server.logger.info("Response size: %s bytes", response_size)
-    except RuntimeError as e:
-        # Handle direct passthrough mode
-        server.logger.warning("Response size cannot be determined: %s", e)
-
-    return response
-
-
+#Корневой адрес
 @server.route("/")
 def index():
     return render_template("index.html")
 
 
+#Все доступные алгоритмы
 @server.route("/app_presets", methods=['GET'])
 def get_app_presets():
     return {
@@ -87,6 +88,7 @@ def delete_structure_file():
     return "ok", 200
 
 
+#Загрузка структуры
 @server.route("/upload_structure", methods=['POST'])
 def upload_structure():
     if 'file' not in request.files:
@@ -105,29 +107,16 @@ def upload_structure():
         session_id = secrets.token_hex(16)
         session['sid'] = session_id
 
-    temp_file = NamedTemporaryFile(delete=True, mode='w+', dir=server.config['TEMPFILE_DIR'])
-    temp_file.write(file.read().decode('utf-8'))
-    temp_file.seek(0)
-    structure = StructureVisualisation.get_structure(session_id, temp_file)
-
-    temp_file.close()
-    cleaned_temp_file = NamedTemporaryFile(delete=False, mode='w+', dir=server.config['TEMPFILE_DIR'])
-    StructureVisualisation.clean_file(structure, cleaned_temp_file)
-    cleaned_temp_file.seek(0)
-    cleaned_structure = StructureVisualisation(session_id,
-                                               cleaned_temp_file,
-                                               server.config["ALGORITHMS"].copy(),
-                                               filename)
-
-    STRUCTURES_STORE[session_id] = cleaned_structure
+    structure_visualisation, cleaned_temp_file = get_structure_visualisation(file, session_id, filename)
+    STRUCTURES_STORE[session_id] = structure_visualisation
     response = send_file(cleaned_temp_file.name, as_attachment=True)
-    response.headers["Content-Disposition"] = os.path.basename(cleaned_temp_file.name)
     cleaned_temp_file.close()
     TEMP_FILES.add(cleaned_temp_file.name)
 
     return response
 
 
+#Выполнить алгоритм
 @server.route("/exec_algorithm", methods=['POST'])
 @requires_structure
 def exec_algorithm():
@@ -150,7 +139,7 @@ def exec_algorithm():
     return jsonify(mask), 200
 
 
-def run_server(*algs):
+def run_server(*algs, port=8000):
     algorithm_storage = AlgorithmsStorage()
     for alg in algs:
         algorithm_storage.add_algorithm(alg())
@@ -158,7 +147,7 @@ def run_server(*algs):
     server.config['SESSION_COOKIE_SAMESITE'] = 'None'
     server.config['SESSION_COOKIE_SECURE'] = False
     server.config['SESSION_COOKIE_HTTPONLY'] = False
-    server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+    #server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
     atexit.register(clean_tempfiles_dir)
     CORS(server, supports_credentials=True, expose_headers='Content-Disposition')
     server.secret_key = 'your_secret_key'
@@ -167,4 +156,4 @@ def run_server(*algs):
     server.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=1)
     server.config['TEMPFILE_DIR'] = "tempfiles"
     os.makedirs(server.config['TEMPFILE_DIR'], exist_ok=True)
-    server.run(host="localhost", port=8000, debug=True)
+    server.run(host="localhost", port=port)
