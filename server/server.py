@@ -4,9 +4,9 @@ import atexit
 from flask_cors import CORS
 from tempfile import NamedTemporaryFile
 import secrets
-from .Algorithm.Algorithm import Algorithm, AlgorithmsStorage
+from server.Algorithm.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
-from .Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
+from server.Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
 
 
 server = Flask(__name__)
