@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 68">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        fill: none;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke: #fff;
+      }
+
+      .cls-4 {
+        letter-spacing: -.06em;
+      }
+
+      .cls-2 {
+        stroke-width: 3px;
+      }
+
+      .cls-3 {
+        fill: #231300;
+        font-family: TrebuchetMS, 'Trebuchet MS';
+        font-size: 9px;
+      }
+    </style>
+  </defs>
+  <g>
+    <ellipse class="cls-1" cx="23.7" cy="23.7" rx="23.55" ry="22.83" transform="translate(-9.82 23.7) rotate(-45)"/>
+    <circle class="cls-1" cx="15.06" cy="32.33" r="8.64"/>
+    <circle class="cls-1" cx="32.33" cy="15.06" r="8.64"/>
+    <line class="cls-2" x1="21.17" y1="26.22" x2="26.22" y2="21.17"/>
+    <text class="cls-3" transform="translate(9.7 35.33) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.38" y="0">A</tspan></text>
+    <text class="cls-3" transform="translate(26.97 18.06) scale(1.01 1)"><tspan x="0" y="0">C</tspan><tspan class="cls-4" x="5.38" y="0">A</tspan></text>
+  </g>
+</svg>
