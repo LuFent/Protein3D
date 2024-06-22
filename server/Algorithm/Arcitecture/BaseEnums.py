@@ -1,9 +1,10 @@
 from enum import Enum
 
 class CHIBSBond(Enum):
-    physicalOperator = 1
-    donorAcceptor = 2
-    acceptorAcceptor = 3
+    physicalOperator = {"type": 1, "energy": None}
+    donorAcceptor = {"type": 2, "energy": 8}
+    acceptorAcceptor = {"type": 3, "energy": 20}
+    residueBridge = {"type": 4, "energy": 305}
 
 class AcidGroups(Enum):
     alkaline = {1: ["LYS", "ARG"]}

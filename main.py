@@ -2,8 +2,8 @@ import sys
 import threading
 from PyQt5.QtWidgets import QApplication
 from interface.app import NGLViewerApp
-from server.main import main as run_server
-import time
+from server import main as run_server
+
 
 def run_pyqt5_app():
     app_ = QApplication(sys.argv)
@@ -13,7 +13,7 @@ def run_pyqt5_app():
 
 
 def run_flask_server():
-    run_server()
+    run_server.main()
 
 pyqt5_thread = threading.Thread(target=run_pyqt5_app)
 flask_thread = threading.Thread(target=run_flask_server)

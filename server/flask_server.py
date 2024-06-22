@@ -8,7 +8,6 @@ from server.Algorithm.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
 from server.Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
 
-
 server = Flask(__name__)
 PORT = 8000
 STRUCTURES_STORE = {}

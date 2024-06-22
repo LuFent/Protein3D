@@ -1,9 +1,12 @@
-from server.server import run_server
+from server.flask_server import run_server
 from server.tools import import_all_algorithms
 
 
 def main():
-    directory = "server/algorithms"  # Replace with the actual path to your directory
+    directory = "server/algorithms"
     algorithms = import_all_algorithms(directory)
-    print(algorithms)
     run_server(*algorithms)
+
+
+if __name__ == "__main__":
+    main()

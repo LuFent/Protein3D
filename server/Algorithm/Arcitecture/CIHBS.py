@@ -18,6 +18,7 @@ class BaseCIHBS:
 
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
         self.setMainChain(structure)
+        self.setBridges(structure)
 
     def getNewCIHBS(self):
         return self.new_cihbs
@@ -35,10 +36,21 @@ class BaseCIHBS:
     def getMainChain(self):
         return self.main_chain
 
+    # добавляем мост между аминокислотами и цепями
+    def setBridges(self, structure):
+        for chain in structure.get_chains():
+            local_main_chain = [atom for atom in Selection.unfold_entities(chain, 'A')
+                                if ((atom.get_name() != "CA" and atom.get_name() != "O" and len(atom.get_name()) == 1)
+                                    and atom.get_parent().get_resname() != "HOH")]
+            main_bridge = [i for i in local_main_chain[1:-1] if (i.get_name() != "O")]
+            main_bridge = zip(main_bridge[::2], main_bridge[1::2])
+            for pair in main_bridge:
+                self.connectAtoms(pair[0], pair[1], BaseEnums.CHIBSBond.residueBridge)
+
+
     # получить альфауглерод
     def getCarbonChain(self):
         return self.alpha_carbon_chain
-
 
     # устанавливаем маску поиска по атомам
     def setNeighbourSearch(self, structure):
@@ -57,7 +69,8 @@ class BaseCIHBS:
 
     # соединяем атомы
     def connectAtoms(self, atom1, atom2, bond):
-        self.new_cihbs.append([atom1, atom2, bond])
+        #print("connectAtoms", atom1, atom2, bond.value.get("type"), bond.value.get("energy"))
+        self.new_cihbs.append([atom1, atom2, bond.value.get("type"), bond.value.get("energy")])
 
 
 class InnerCIHBS(BaseCIHBS):
@@ -128,10 +141,10 @@ class InnerCIHBS(BaseCIHBS):
                     pass
 
         # добавляем триплеты NCO из основной цепи
-        tmp = [i for i in main_chain if (i.get_name() != "CA")]
-        cihbs_list.append(tmp)
+        main_triplet = [i for i in main_chain if (i.get_name() != "CA")]
+        cihbs_list.append(main_triplet)
 
-        # созраняем в словарь для удобной и быстрой работы алгоритма
+        # сохраняем в словарь для удобной и быстрой работы алгоритма
         self.inner_cihbs = sum(cihbs_list, [])
         for i in self.inner_cihbs:
             if i.get_parent() in self.inner_cihbs_dict.keys():
@@ -170,7 +183,7 @@ class PhysicalOperators(BaseCIHBS):
                 and group_4_resname not in BaseEnums.Groups.antiConnectors.value:
             self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
             if (i_4_element.element == closest.element)
-            else BaseEnums.CHIBSBond.acceptorAcceptor)
+            else BaseEnums.CHIBSBond.donorAcceptor)
 
     # соединение атомов основной цепи при помощи физических операторов
     def connectPhysicalOperators(self):
@@ -182,25 +195,25 @@ class PhysicalOperators(BaseCIHBS):
             group_4 = self.alpha_carbon_chain[i - 4].get_parent()
             group_3 = self.alpha_carbon_chain[i - 3].get_parent()
 
-            #проверка на наличие аминокислот в пентофрагменте
+            # проверка на наличие аминокислот в пентофрагменте
             if group_0.get_resname() not in BaseEnums.Groups.all_amino_acid_list.value or \
-                group_4.get_resname() not in BaseEnums.Groups.all_amino_acid_list.value:
+                    group_4.get_resname() not in BaseEnums.Groups.all_amino_acid_list.value:
                 continue
 
             diff = int(group_0.get_id()[1]) - int(group_4.get_id()[1])
-            #print("for i = ", i, diff, group_0, group_4)
+            # print("for i = ", i, diff, group_0, group_4)
             # проверка на совпадения серийных номеров и возвращение к пентофрагменту
             if diff != 4:
                 group_4 = self.alpha_carbon_chain[i - 4 + (diff - 4)].get_parent()
                 group_3 = self.alpha_carbon_chain[i - 3 + (diff - 3)].get_parent()
                 diff = int(group_0.get_id()[1]) - int(group_4.get_id()[1])
-               #print("New diff", diff)
+            # print("New diff", diff)
             if diff == 4:
                 pass
             else:
                 continue
 
-            #print("Checking resseq = ", group_0, group_4)
+            # print("Checking resseq = ", group_0, group_4)
 
             # получаем внутренние ССИВС для i-го элемента
 
@@ -217,7 +230,7 @@ class PhysicalOperators(BaseCIHBS):
 
             # соединяем 0 и 4
             if math.dist(i_4_element.get_coord(), i_0_element.get_coord()) <= 4:
-                #print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
+                # print(i_0_element.get_parent(), i_4_element.get_parent(), "\n")
                 self.connectAtoms(i_0_element, i_4_element, BaseEnums.CHIBSBond.physicalOperator)
 
             # соединяем с остатком
@@ -278,4 +291,4 @@ class OuterCIHBS(BaseCIHBS):
                     self.connectAtoms(neighbour, elem,
                                       BaseEnums.CHIBSBond.acceptorAcceptor
                                       if (elem.element == neighbour.element and elem.element == "O")
-                                      else BaseEnums.CHIBSBond.acceptorAcceptor)
+                                      else BaseEnums.CHIBSBond.donorAcceptor)
