@@ -69,7 +69,7 @@ class BaseCIHBS:
 
     # соединяем атомы
     def connectAtoms(self, atom1, atom2, bond):
-        #print("connectAtoms", atom1, atom2, bond.value.get("type"), bond.value.get("energy"))
+        #print("connectAtoms", atom1.get_serial_number(), atom2.get_serial_number(), bond.value.get("type"), bond.value.get("energy"))
         self.new_cihbs.append([atom1, atom2, bond.value.get("type"), bond.value.get("energy")])
 
 
@@ -212,8 +212,6 @@ class PhysicalOperators(BaseCIHBS):
                 pass
             else:
                 continue
-
-            # print("Checking resseq = ", group_0, group_4)
 
             # получаем внутренние ССИВС для i-го элемента
 
