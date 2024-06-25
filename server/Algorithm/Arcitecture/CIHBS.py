@@ -1,32 +1,44 @@
 import math
-
 from Bio.PDB import Selection, NeighborSearch
-
 from . import BaseEnums
+from .ExtraBond import ExtraBondStorage, ExtraBonds
 
 
 class BaseCIHBS:
     def __init__(self):
-        self.new_cihbs = []
+        self.extraBonds = ExtraBondStorage()
 
     def setParameters(self, structure):
         self.alpha_carbon_chain = [atom for atom in Selection.unfold_entities(structure, 'A')
                                    if atom.get_name() == "CA"]
-        """self.main_chain_dict = {atom.get_parent(): atom.get_name() for atom in Selection.unfold_entities(structure, 'A')
-                              if ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
-                                  and atom.get_parent().get_resname() != "HOH")}"""
 
         self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
         self.setMainChain(structure)
         self.setBridges(structure)
 
-    def getNewCIHBS(self):
-        return self.new_cihbs
-
     def setMainChain(self, structure):
         self.main_chain = [atom for atom in Selection.unfold_entities(structure, 'A')
                            if ((atom.get_name() == "CA" or len(atom.get_name()) == 1)
                                and atom.get_parent().get_resname() != "HOH")]
+
+    # добавляем мост между аминокислотами и цепями
+    def setBridges(self, structure):
+        for chain in structure.get_chains():
+            local_main_chain = [atom for atom in Selection.unfold_entities(chain, 'A')
+                                if
+                                ((atom.get_name() != "CA" and atom.get_name() != "O" and len(atom.get_name()) == 1)
+                                 and atom.get_parent().get_resname() != "HOH")]
+            main_bridge = [i for i in local_main_chain[1:-1] if (i.get_name() != "O")]
+            main_bridge = zip(main_bridge[::2], main_bridge[1::2])
+            for pair in main_bridge:
+                self.connectAtoms(pair[0], pair[1], BaseEnums.CHIBSBond.residueBridge)
+
+    # устанавливаем маску поиска по атомам
+    def setNeighbourSearch(self, structure):
+        self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
+
+    def getNewCIHBS(self):
+        return self.extraBonds
 
     # получить номера атомов основной цепи
     def getMainChain_serial_number(self):
@@ -36,25 +48,9 @@ class BaseCIHBS:
     def getMainChain(self):
         return self.main_chain
 
-    # добавляем мост между аминокислотами и цепями
-    def setBridges(self, structure):
-        for chain in structure.get_chains():
-            local_main_chain = [atom for atom in Selection.unfold_entities(chain, 'A')
-                                if ((atom.get_name() != "CA" and atom.get_name() != "O" and len(atom.get_name()) == 1)
-                                    and atom.get_parent().get_resname() != "HOH")]
-            main_bridge = [i for i in local_main_chain[1:-1] if (i.get_name() != "O")]
-            main_bridge = zip(main_bridge[::2], main_bridge[1::2])
-            for pair in main_bridge:
-                self.connectAtoms(pair[0], pair[1], BaseEnums.CHIBSBond.residueBridge)
-
-
     # получить альфауглерод
     def getCarbonChain(self):
         return self.alpha_carbon_chain
-
-    # устанавливаем маску поиска по атомам
-    def setNeighbourSearch(self, structure):
-        self.ns = NeighborSearch(Selection.unfold_entities(structure, 'A'))
 
     # поиск соседних целевых атомов среди соседних аминокислот
     def findTargetNeigbourExept(self, atom, radius, target):
@@ -69,8 +65,7 @@ class BaseCIHBS:
 
     # соединяем атомы
     def connectAtoms(self, atom1, atom2, bond):
-        #print("connectAtoms", atom1.get_serial_number(), atom2.get_serial_number(), bond.value.get("type"), bond.value.get("energy"))
-        self.new_cihbs.append([atom1, atom2, bond.value.get("type"), bond.value.get("energy")])
+        self.extraBonds.addBond(ExtraBonds(atom1, atom2, bond.value.get("type"), bond.value.get("energy")))
 
 
 class InnerCIHBS(BaseCIHBS):
@@ -91,7 +86,6 @@ class InnerCIHBS(BaseCIHBS):
         return self.inner_cihbs_dict
 
     def checkInnerGroups(self, structure, main_chain):
-
         cihbs_list = []
         for residue in structure.get_residues():
             if residue.get_resname() != "HOH":
@@ -182,8 +176,8 @@ class PhysicalOperators(BaseCIHBS):
         if group_cihbs and closest and math.dist(closest.get_vector(), i_4_element.get_vector()) <= 4 \
                 and group_4_resname not in BaseEnums.Groups.antiConnectors.value:
             self.connectAtoms(closest, i_4_element, BaseEnums.CHIBSBond.acceptorAcceptor
-            if (i_4_element.element == closest.element)
-            else BaseEnums.CHIBSBond.donorAcceptor)
+                              if (i_4_element.element == closest.element)
+                              else BaseEnums.CHIBSBond.donorAcceptor)
 
     # соединение атомов основной цепи при помощи физических операторов
     def connectPhysicalOperators(self):

@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class CHIBSBond(Enum):
     physicalOperator = {"type": 1, "energy": None}
     donorAcceptor = {"type": 2, "energy": 8}
     acceptorAcceptor = {"type": 3, "energy": 20}
     residueBridge = {"type": 4, "energy": 305}
+
 
 class AcidGroups(Enum):
     alkaline = {1: ["LYS", "ARG"]}
@@ -15,12 +17,14 @@ class AcidGroups(Enum):
     sulfid = {6: ["CYS", "MET"]}
     cyclic = {7: ["PRO", "PHE", "TYR", "HIS", "TRP"]}
 
+
 class Atoms(Enum):
     singleTargetElements = ["N", "O", "S"]
     allAtomsElements = ["N", "O", "S", "C"]
 
     donor = "N"
     acceptor = ["O", "S"]
+
 
 class Groups(Enum):
     all_amino_acid_list = ["ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET",
