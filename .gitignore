@@ -156,6 +156,4 @@ cython_debug/
 pdb/*
 build/*
 tempfiles/*
-/example_dir/*
-!/example_dir/.gitkeep
-!/example_dir/
+__pycache__/
