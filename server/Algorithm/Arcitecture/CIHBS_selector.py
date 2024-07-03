@@ -21,7 +21,7 @@ class SelectorCIHBS(BaseCIHBS):
     # получение физических операторов между i и i-n элементами пентофрагментов
     def getNH_O(self):
         def mapping(distance):
-            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[2], i[3]] for i in self.new_cihbs
+            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[3]] for i in self.new_cihbs
                     if
                     abs(int(i[0].get_parent().get_id()[1]) - int(i[1].get_parent().get_id()[1])) == distance
                     and i[0].get_name() == 'N'
@@ -35,7 +35,7 @@ class SelectorCIHBS(BaseCIHBS):
     # получение ССИВС между iм остатком и i-n кислородом пентофрагментов
     def getR_O(self):
         def mapping(distance):
-            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[2], i[3]] for i in self.new_cihbs
+            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[3]] for i in self.new_cihbs
                     if
                     abs(int(i[0].get_parent().get_id()[1])) - int(i[1].get_parent().get_id()[1]) == 3
                     and len(i[0].get_name()) >= 2
@@ -49,7 +49,7 @@ class SelectorCIHBS(BaseCIHBS):
     # получение ССИВС между iм остатком и i-n остатком
     def getR_R(self):
         def mapping(distance):
-            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[2], i[3]] for i in self.new_cihbs
+            return [[i[0].get_serial_number(), i[1].get_serial_number(), i[3]] for i in self.new_cihbs
                     if
                     abs(int(i[0].get_parent().get_id()[1])) - int(i[1].get_parent().get_id()[1]) == distance
                     and len(i[0].get_name()) >= 2
@@ -61,12 +61,12 @@ class SelectorCIHBS(BaseCIHBS):
 
     # получение остальных ССИВС
     def getOthers(self):
-        return {'Others': [[i[0].get_serial_number(), i[1].get_serial_number(), i[2], i[3]] for i in self.new_cihbs
+        return {'Others': [[i[0].get_serial_number(), i[1].get_serial_number(), i[3]] for i in self.new_cihbs
                            if
                            i[2] != CHIBSBond.physicalOperator.value.get("type")
                            and ((len(i[0].get_name()) >= 2 and i[1].get_name() != 'O')
                                 or (len(i[0].get_name()) == 1 and len(i[1].get_name()) >= 2))]}
 
     def getBridges(self):
-        return [[i[0].get_serial_number(), i[1].get_serial_number(), i[2], i[3]] for i in self.new_cihbs
+        return [[i[0].get_serial_number(), i[1].get_serial_number(), i[3]] for i in self.new_cihbs
                 if i[2] == CHIBSBond.residueBridge.value.get("type")]
