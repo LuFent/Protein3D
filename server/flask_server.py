@@ -136,7 +136,7 @@ def exec_algorithm():
         mask = structure.execute_algorithm(alg).serialize()
     except Exception:
         return jsonify({'error': 'Something went wrong'}), 400
-    pprint(mask)
+    #pprint(mask)
     return jsonify(mask), 200
 
 
