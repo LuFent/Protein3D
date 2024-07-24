@@ -25,6 +25,9 @@ class ExtraBonds:
     def getAll(self):
         return [self.atom_1.get_serial_number(), self.atom_2.get_serial_number(), self.bond_type, self.bond_energy]
 
+    def getAll_no_Bondtype(self):
+        return [self.atom_1.get_serial_number(), self.atom_2.get_serial_number(), self.bond_energy]
+
 
 class ExtraBondStorage:
     def __init__(self):
