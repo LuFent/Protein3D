@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from flask import Flask, render_template, request, send_file, session, abort, jsonify, send_from_directory
 import os
 import atexit
@@ -134,7 +136,7 @@ def exec_algorithm():
         mask = structure.execute_algorithm(alg).serialize()
     except Exception:
         return jsonify({'error': 'Something went wrong'}), 400
-
+    pprint(mask)
     return jsonify(mask), 200
 
 

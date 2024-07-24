@@ -42,93 +42,73 @@ class ExtraBondStorage:
     def extendBond(self, bonds):
         self.bonds.extend(bonds)
 
-    def mapping_NH_O(self, distance):
-        return [bond.getAll() for bond in self.bonds if
+    def mapping_NH_O(self, distance, bond_type):
+        return [bond.getAll_no_Bondtype() for bond in self.bonds if
                 abs(int(bond.getAtom1().get_parent().get_id()[1]) - int(
                     bond.getAtom2().get_parent().get_id()[1])) == distance
                 and bond.getAtom1().get_name() == 'N'
-                and bond.getAtom2().get_name() == 'O']
+                and bond.getAtom2().get_name() == 'O'
+                and bond.getBondType() == bond_type]
 
-    def mapping_R_O(self, distance):
-        return [bond.getAll() for bond in self.bonds if
+    def mapping_R_O(self, distance, bond_type):
+        return [bond.getAll_no_Bondtype() for bond in self.bonds if
                 abs(int(bond.getAtom1().get_parent().get_id()[1])) - int(
                     bond.getAtom2().get_parent().get_id()[1]) == distance
                 and len(bond.getAtom1().get_name()) >= 2
-                and bond.getAtom2().get_name() == 'O']
+                and bond.getAtom2().get_name() == 'O'
+                and bond.getBondType() == bond_type]
 
-    def mapping_R_R(self, distance):
-        return [bond.getAll() for bond in self.bonds if
+    def mapping_R_R(self, distance, bond_type):
+        return [bond.getAll_no_Bondtype() for bond in self.bonds if
                 abs(int(bond.getAtom1().get_parent().get_id()[1])) - int(
                     bond.getAtom2().get_parent().get_id()[1]) == distance
                 and len(bond.getAtom1().get_name()) >= 2
-                and len(bond.getAtom2().get_name()) >= 2]
+                and len(bond.getAtom2().get_name()) >= 2
+                and bond.getBondType() == bond_type]
 
     # получение мостов между аминокислотами
     def getBridges(self):
-        return {'Polypeptide': [bond.getAll() for bond in self.bonds
+        return {'Polypeptide': [bond.getAll_no_Bondtype() for bond in self.bonds
                                 if bond.getBondType() == CHIBSBond.residueBridge.value.get("type")]}
 
     # получение остальных ССИВС
-    def getOthers(self):
-        return [bond.getAll() for bond in self.bonds
-                           if bond.getBondType() != CHIBSBond.physicalOperator.value.get("type")
-                           and ((len(bond.getAtom1().get_name()) >= 2 and bond.getAtom2().get_name() != 'O')
-                                or (len(bond.getAtom1().get_name()) == 1 and len(bond.getAtom2().get_name()) >= 2))]
+    def getOthers(self, bond_type):
+        return [bond.getAll_no_Bondtype() for bond in self.bonds
+                if bond.getBondType() != CHIBSBond.physicalOperator.value.get("type")
+                and bond.getBondType() == bond_type
+                and ((len(bond.getAtom1().get_name()) >= 2 and bond.getAtom2().get_name() != 'O')
+                     or (len(bond.getAtom1().get_name()) == 1 and len(bond.getAtom2().get_name()) >= 2))]
 
     def serialize(self):
         if self.bonds:
             bonds = {}
 
-            # получение физических операторов между i и i-n элементами пентофрагментов
-            bond_NH_O = self.mapping_NH_O(3)
-
-            # получение ССИВС между iм остатком и i-n кислородом пентофрагментов
-            bond_R_O = self.mapping_R_O(3)
-
-            # получение ССИВС между iм остатком и i-n остатком
-            bond_R_R = self.mapping_R_R(3)
-
-            bond_others = self.getOthers()
-
             bonds['HydrogenAA'] = {
-                'Others': [i for i in bond_others if i[2] == CHIBSBond.acceptorAcceptor.value.get("type")],
-                'R_Oi_{}'.format(3): [i for i in bond_R_O
-                                          if i[2] == CHIBSBond.acceptorAcceptor.value.get("type")],
-                'R_Ri_{}'.format(3): [i for i in bond_R_R
-                                          if i[2] == CHIBSBond.acceptorAcceptor.value.get("type")]}
-            bonds['HydrogenDA'] = {
-                'Others': [i for i in bond_others if i[2] == CHIBSBond.donorAcceptor.value.get("type")],
-                'R_Oi_{}'.format(3): [i for i in bond_R_O
-                                          if i[2] == CHIBSBond.donorAcceptor.value.get("type")],
-                'R_Ri_{}'.format(3): [i for i in bond_R_R
-                                          if i[2] == CHIBSBond.donorAcceptor.value.get("type")]}
-            bonds['Physics'] = {'NH_Oi_{}'.format(3): [i for i in bond_NH_O
-                                                                     if i[2] == CHIBSBond.physicalOperator.value.get("type")]}
-
-            for cycle in range(4, 7):
-                # получение физических операторов между i и i-n элементами пентофрагментов
-                bond_NH_O = self.mapping_NH_O(cycle)
+                'Others': [i for i in self.getOthers(CHIBSBond.acceptorAcceptor.value.get("type"))],
 
                 # получение ССИВС между iм остатком и i-n кислородом пентофрагментов
-                bond_R_O = self.mapping_R_O(cycle)
+                'R_Oi_{}'.format(3): [i for i in self.mapping_R_O(3, CHIBSBond.acceptorAcceptor.value.get("type"))],
 
                 # получение ССИВС между iм остатком и i-n остатком
-                bond_R_R = self.mapping_R_R(cycle)
+                'R_Ri_{}'.format(3): [i for i in self.mapping_R_R(3, CHIBSBond.acceptorAcceptor.value.get("type"))]}
+            bonds['HydrogenDA'] = {
+                'Others': [i for i in self.getOthers(CHIBSBond.donorAcceptor.value.get("type"))],
+                'R_Oi_{}'.format(3): [i for i in self.mapping_R_O(3, CHIBSBond.donorAcceptor.value.get("type"))],
+                'R_Ri_{}'.format(3): [i for i in self.mapping_R_R(3, CHIBSBond.donorAcceptor.value.get("type"))]}
 
+            # получение физических операторов между i и i-n элементами пентофрагментов
+            bonds['Physics'] = {'NH_Oi_{}'.format(3): [i for i in self.mapping_NH_O(3, CHIBSBond.physicalOperator.value.get("type"))]}
+
+            for cycle in range(4, 7):
                 bonds['HydrogenAA'].update({
-                    'R_Oi_{}'.format(cycle): [i for i in bond_R_O
-                                              if i[2] == CHIBSBond.acceptorAcceptor.value.get("type")],
-                    'R_Ri_{}'.format(cycle): [i for i in bond_R_R
-                                              if i[2] == CHIBSBond.acceptorAcceptor.value.get("type")]})
+                    'R_Oi_{}'.format(cycle): [i for i in self.mapping_R_O(cycle, CHIBSBond.acceptorAcceptor.value.get("type"))],
+                    'R_Ri_{}'.format(cycle): [i for i in self.mapping_R_R(cycle, CHIBSBond.acceptorAcceptor.value.get("type"))]})
                 bonds['HydrogenDA'].update({
-                    'R_Oi_{}'.format(cycle): [i for i in bond_R_O
-                                              if i[2] == CHIBSBond.donorAcceptor.value.get("type")],
-                    'R_Ri_{}'.format(cycle): [i for i in bond_R_R
-                                              if i[2] == CHIBSBond.donorAcceptor.value.get("type")]})
-                bonds['Physics'].update({'NH_Oi_{}'.format(cycle): [i for i in bond_NH_O
-                                                                    if i[2] == CHIBSBond.physicalOperator.value.get("type")]})
+                    'R_Oi_{}'.format(cycle): [i for i in self.mapping_R_O(cycle, CHIBSBond.donorAcceptor.value.get("type"))],
+                    'R_Ri_{}'.format(cycle): [i for i in self.mapping_R_R(cycle, CHIBSBond.donorAcceptor.value.get("type"))]})
+                bonds['Physics'].update({'NH_Oi_{}'.format(cycle): [i for i in self.mapping_NH_O(cycle, CHIBSBond.physicalOperator.value.get("type"))]})
 
             bonds['Bridges'] = self.getBridges()
-            #pprint(bonds)
+            # pprint(bonds)
             return bonds
         raise ValueError("Возвращается пустой объект.")
