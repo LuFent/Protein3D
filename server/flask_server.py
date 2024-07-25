@@ -7,7 +7,7 @@ import secrets
 from server.Algorithm.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
 from server.Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
-
+from pprint import pprint
 server = Flask(__name__)
 PORT = 8000
 STRUCTURES_STORE = {}
@@ -33,6 +33,7 @@ def get_structure_visualisation(file, session_id, filename):
 
 def requires_structure(func):
     def wrserverer(*args, **kwargs):
+        print(STRUCTURES_STORE)
         if 'sid' not in session:
             return jsonify({'error': 'Session does not have the structure'}), 400
         return func(*args, **kwargs)
@@ -134,7 +135,8 @@ def exec_algorithm():
         mask = structure.execute_algorithm(alg).serialize()
     except Exception:
         return jsonify({'error': 'Something went wrong'}), 400
-
+    from pprint import pprint
+    pprint(mask)
     return jsonify(mask), 200
 
 
@@ -146,9 +148,11 @@ def run_server(*algs, port=8000):
     server.config['SESSION_COOKIE_SAMESITE'] = 'None'
     server.config['SESSION_COOKIE_SECURE'] = False
     server.config['SESSION_COOKIE_HTTPONLY'] = False
-    #server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+    server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+    #server.config.update(SESSION_COOKIE_SAMESITE="None")
+    #server.config.update(SESSION_COOKIE_SECURE=True)
     atexit.register(clean_tempfiles_dir)
-    CORS(server, supports_credentials=True, expose_headers='Content-Disposition')
+    CORS(server, supports_credentials=True)
     server.secret_key = 'your_secret_key'
     server.config['UPLOAD_FOLDER'] = 'pdb'
     server.config['ALLOWED_EXTENSIONS'] = {'pdb', 'pdb1'}
