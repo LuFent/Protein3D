@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from flask import Flask, render_template, request, send_file, session, abort, jsonify, send_from_directory
 import os
 import atexit
@@ -135,8 +137,6 @@ def exec_algorithm():
         mask = structure.execute_algorithm(alg).serialize()
     except Exception:
         return jsonify({'error': 'Something went wrong'}), 400
-    from pprint import pprint
-    pprint(mask)
     return jsonify(mask), 200
 
 
@@ -148,7 +148,7 @@ def run_server(*algs, port=8000):
     server.config['SESSION_COOKIE_SAMESITE'] = 'None'
     server.config['SESSION_COOKIE_SECURE'] = False
     server.config['SESSION_COOKIE_HTTPONLY'] = False
-    server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
+    #server.config.update(SESSION_COOKIE_SAMESITE="None", SESSION_COOKIE_SECURE=True)
     #server.config.update(SESSION_COOKIE_SAMESITE="None")
     #server.config.update(SESSION_COOKIE_SECURE=True)
     atexit.register(clean_tempfiles_dir)
