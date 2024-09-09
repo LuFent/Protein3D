@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from flask import Flask, render_template, request, send_file, session, abort, jsonify, send_from_directory
+from flask import Flask, render_template, request, send_file, abort, jsonify, send_from_directory
 import os
 import atexit
 from flask_cors import CORS
@@ -9,11 +9,32 @@ import secrets
 from server.Algorithm.Algorithm import Algorithm, AlgorithmsStorage
 from datetime import timedelta
 from server.Algorithm.StructureVisualisation import StructureVisualisation, NotDisordered
+from uuid import uuid4
 from pprint import pprint
+from functools import wraps
+
+
+STRUCTURES_STORE = {}
+
 server = Flask(__name__)
 PORT = 8000
-STRUCTURES_STORE = {}
+
 TEMP_FILES = set()
+
+
+
+def create_session() -> str:
+    session_id = str(uuid4())
+    STRUCTURES_STORE[session_id] = None
+    return session_id
+
+
+def get_session_data(session_id: str) -> dict:
+    return STRUCTURES_STORE.get(session_id)
+
+
+def save_session_data(session_id: str, data: dict):
+    STRUCTURES_STORE[session_id] = data
 
 
 def get_structure_visualisation(file, session_id, filename):
@@ -33,15 +54,30 @@ def get_structure_visualisation(file, session_id, filename):
 
     return cleaned_structure, cleaned_temp_file
 
-def requires_structure(func):
-    def wrserverer(*args, **kwargs):
-        print(STRUCTURES_STORE)
-        if 'sid' not in session:
-            return jsonify({'error': 'Session does not have the structure'}), 400
-        return func(*args, **kwargs)
 
-    wrserverer.__name__ = func.__name__
-    return wrserverer
+def require_session_id(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        session_id = request.args.get('session_id')
+        if not session_id:
+            return jsonify({"error": "Missing session_id"}), 400
+        if session_id not in STRUCTURES_STORE:
+            return jsonify({"error": "No such session_id"}), 404
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def require_structure(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        session_id = request.args.get('session_id')
+        if not session_id:
+            return jsonify({"error": "Missing session_id"}), 400
+        if not STRUCTURES_STORE.get(session_id, None):
+            return jsonify({"error": "No such session_id"}), 404
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 
 def allowed_file(filename):
@@ -66,8 +102,10 @@ def index():
 #Все доступные алгоритмы
 @server.route("/app_presets", methods=['GET'])
 def get_app_presets():
+    session_id = create_session()
     return {
         "algorithms": server.config["ALGORITHMS"].get_all_algorithms(),
+        "session_id": session_id
     }
 
 
@@ -92,7 +130,9 @@ def delete_structure_file():
 
 #Загрузка структуры
 @server.route("/upload_structure", methods=['POST'])
+@require_session_id
 def upload_structure():
+    session_id = request.args.get('session_id')
     if 'file' not in request.files:
         abort(400)
 
@@ -101,13 +141,8 @@ def upload_structure():
     if not file:
         abort(400)
 
-    if session.get("sid", False):
-        session_id = session["sid"]
-        if STRUCTURES_STORE.get(session_id, False):
-            del STRUCTURES_STORE[session_id]
-    else:
-        session_id = secrets.token_hex(16)
-        session['sid'] = session_id
+    if STRUCTURES_STORE.get(session_id, False):
+        del STRUCTURES_STORE[session_id]
 
     structure_visualisation, cleaned_temp_file = get_structure_visualisation(file, session_id, filename)
     STRUCTURES_STORE[session_id] = structure_visualisation
@@ -120,8 +155,9 @@ def upload_structure():
 
 #Выполнить алгоритм
 @server.route("/exec_algorithm", methods=['POST'])
-@requires_structure
+@require_structure
 def exec_algorithm():
+    session_id = request.args.get('session_id')
     if request.is_json:
         json_data = request.json
         if 'alg' in json_data:
@@ -131,7 +167,7 @@ def exec_algorithm():
     else:
         return jsonify({'error': 'Request data is not JSON'}), 400
 
-    structure = STRUCTURES_STORE[session["sid"]]
+    structure = STRUCTURES_STORE[session_id]
 
     try:
         mask = structure.execute_algorithm(alg).serialize()

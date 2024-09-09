@@ -21,12 +21,3 @@ flask_thread = threading.Thread(target=run_flask_server)
 pyqt5_thread.start()
 flask_thread.setDaemon(True)
 flask_thread.start()
-
-"""
-try:
-    while True:
-        time.sleep(1)
-
-except KeyboardInterrupt:
-    print("exiting")
-    exit(0)"""
